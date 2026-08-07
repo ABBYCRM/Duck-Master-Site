@@ -3,33 +3,43 @@ import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-mo
 import { ChevronLeft, ChevronRight, ArrowRight, LayoutGrid, Sparkles } from 'lucide-react';
 import { CATEGORIES } from '../data/tools';
 
-// ── Curated Unsplash images per module ───────────────────────────────────────
+// ── Duck mascot card images (generated, stored in /src/assets) ─────────────
+import duckCyber   from '../assets/duck-cyber.jpg';   // hacker duck — 01,14,15,16
+import duckOsint   from '../assets/duck-osint.jpg';   // detective duck — 05,06,07,10
+import duckAi      from '../assets/duck-ai.jpg';      // AI/neural duck — 17,18,19,20,22
+import duckNetwork from '../assets/duck-network.jpg'; // server/DNS duck — 08,09
+import duckCrypto  from '../assets/duck-crypto.jpg';  // crypto duck — 11
+import duckReverse from '../assets/duck-reverse.jpg'; // RE/firmware duck — 12,13
+import duckGeo     from '../assets/duck-geo.jpg';     // globe/country duck — 02,03,04,21,23
+import duckSeo     from '../assets/duck-seo.jpg';     // SEO/analytics duck — 24,25
+
+// ── Module → card image mapping ────────────────────────────────────────────
 const CARD_IMAGES: Record<string, string> = {
-  "01": "1518770660439-4636190af475", // screenshot tools → glowing monitor
-  "02": "1483729600746-1c2ff895b4ab", // Brazil → aerial beach city
-  "03": "1501854140801-50d01698950b", // USA Gov → US flag stars
-  "04": "1528360983277-13d401cdc186", // China → neon city skyline
-  "05": "1499750310107-5ce358b36a0a", // OSINT collections → surveillance eye
-  "06": "1509087859087-a384654eca4c", // Identity OSINT → fingerprint scan
-  "07": "1507842217343-583bb2515660", // Web Archives → library shelves
-  "08": "1558494949-ef010cbdcc31",    // Domain / DNS → server room
-  "09": "1550745165-9bc0b252726f",    // Threat Intel → deep blue cyber
-  "10": "1446776811953-b23d57bd21aa", // GEOINT → satellite earth
-  "11": "1518546305927-5a555bb7020d", // Blockchain → bitcoin glow
-  "12": "1526374965328-7f61d4dc18c5", // Rev Eng → green matrix code
-  "13": "1512941937669-90a1b58e7e9c", // Mobile/Firmware → phone in dark
-  "14": "1558618666-fcd25c85cd64",    // Network → ethernet cables
-  "15": "1550751827-4bd374c3f58b",    // DFIR Blue Team → dark forensics
-  "16": "1498050108023-c5249f4df085", // Security OS → dark hacker desk
-  "17": "1677756119021-68e24d31e4d4", // AI / Chat → neural circuit board
-  "18": "1555949963-ff9fe0c870eb",    // AI Coding → code on screen night
-  "19": "1544197150-b99a580bb7a8",    // AI Local → rack servers blue
-  "20": "1485827404703-89b55fcc595e", // AI Automation → robot arm
-  "21": "1531297484001-80022131f5a1", // China AI → space city concept
-  "22": "1563986768609-322da13575f3", // AI Security → dark shield glow
-  "23": "1620712943543-bcc4688e7485", // China Cyber → cyber dark
-  "24": "1460925895917-afdab827c52f", // SEO / Content → analytics dash
-  "25": "1451187580459-43490279c0fa", // GEO / LLMO → glowing globe
+  "01": duckCyber,    // Screenshot & Original Tools  → hacker duck
+  "02": duckGeo,      // Brazil OSINT                 → globe/country duck
+  "03": duckGeo,      // USA Government               → globe/country duck
+  "04": duckGeo,      // China Public Records         → globe/country duck
+  "05": duckOsint,    // OSINT Master Collections     → detective duck
+  "06": duckOsint,    // Identity OSINT               → detective duck
+  "07": duckOsint,    // Web Search & Archives        → detective duck
+  "08": duckNetwork,  // Domain / DNS / IP            → server duck
+  "09": duckNetwork,  // Threat Intelligence          → server duck
+  "10": duckOsint,    // GEOINT / Satellite           → detective duck
+  "11": duckCrypto,   // Blockchain / Crypto          → crypto duck
+  "12": duckReverse,  // Reverse Engineering          → RE duck
+  "13": duckReverse,  // Android / iOS / Mobile       → RE duck
+  "14": duckCyber,    // Network Security Testing     → hacker duck
+  "15": duckCyber,    // DFIR / Blue Team             → hacker duck
+  "16": duckCyber,    // Security Operating Systems   → hacker duck
+  "17": duckAi,       // AI Chat & Model Platforms    → AI duck
+  "18": duckAi,       // AI Coding Agents             → AI duck
+  "19": duckAi,       // AI Local / Self-Hosted       → AI duck
+  "20": duckAi,       // AI Agent Frameworks          → AI duck
+  "21": duckGeo,      // China AI Ecosystem           → globe/country duck
+  "22": duckAi,       // AI Security / Red-Team LLM  → AI duck
+  "23": duckGeo,      // China Cybersecurity          → globe/country duck
+  "24": duckSeo,      // Classic SEO & Content        → SEO duck
+  "25": duckSeo,      // GEO / AEO / LLMO             → SEO duck
 };
 
 // Short, punchy subtitles per module
@@ -61,9 +71,8 @@ const CARD_SUBTITLES: Record<string, string> = {
   "25": "Geo-targeting, answer engines & AI search visibility",
 };
 
-function getImgUrl(id: string) {
-  const photoId = CARD_IMAGES[id] ?? CARD_IMAGES["01"];
-  return `https://images.unsplash.com/photo-${photoId}?w=700&h=1000&auto=format&fit=crop&q=80`;
+function getImgUrl(id: string): string {
+  return CARD_IMAGES[id] ?? duckCyber;
 }
 
 // ── Perspective card offsets ──────────────────────────────────────────────────
@@ -287,30 +296,27 @@ export function TopicPicker({ onSelectTopic, onBrowseAll }: TopicPickerProps) {
         aria-hidden
       />
 
-      {/* Header */}
+      {/* Header — GDY hero logo + tagline */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.5 }}
-        className="relative z-10 text-center mb-10 px-4"
+        className="relative z-10 text-center mb-6 px-4 flex flex-col items-center"
       >
+        {/* Hero logo image */}
+        <img
+          src="/gdy-hero.png"
+          alt="GDY — Go Duck Yourself"
+          className="w-full max-w-xs sm:max-w-sm md:max-w-md object-contain mb-2 drop-shadow-2xl"
+          style={{ filter: "drop-shadow(0 0 32px rgba(139,92,246,0.5))" }}
+          draggable={false}
+        />
         <p
-          className="text-xs font-bold uppercase tracking-[0.25em] mb-3"
-          style={{ color: "rgba(165,180,252,0.8)" }}
+          className="text-xs font-bold uppercase tracking-[0.22em]"
+          style={{ color: "rgba(165,180,252,0.65)" }}
         >
-          Duck Master · 842 tools · 25 modules
+          842 tools · 25 modules · pick your domain
         </p>
-        <h1
-          className="text-4xl md:text-5xl font-extrabold tracking-tight leading-none"
-          style={{
-            background: "linear-gradient(135deg, #ffffff 30%, #a5b4fc 70%, #818cf8 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}
-        >
-          What do you want<br />to learn today?
-        </h1>
       </motion.div>
 
       {/* Carousel stage */}

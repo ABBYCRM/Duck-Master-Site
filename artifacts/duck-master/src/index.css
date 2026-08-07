@@ -50,6 +50,15 @@
   --cat-23: 210 85% 55%;
   --cat-24: 225 85% 55%;
   --cat-25: 190 85% 55%;
+
+  /* Pattern 064 — safe-area-inset tokens */
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+
+  /* Sticky header height token — used for scroll-padding */
+  --header-h: 3.5rem; /* 56px */
 }
 
 @theme inline {
@@ -77,6 +86,8 @@ html {
   scroll-behavior: smooth;
   /* Pattern 096 — reserve scrollbar gutter */
   scrollbar-gutter: stable;
+  /* Pattern 073 — scroll-padding accounts for sticky header */
+  scroll-padding-top: calc(var(--header-h) + 1rem);
 }
 
 body {
@@ -86,6 +97,10 @@ body {
   -webkit-font-smoothing: antialiased;
   /* Pattern 034 — prettier paragraph wrapping */
   text-wrap: pretty;
+  /* Pattern 066 — kill default iOS tap flash */
+  -webkit-tap-highlight-color: transparent;
+  /* Pattern 093 — prevent pull-to-refresh hijacking on app shell */
+  overscroll-behavior-y: none;
 }
 
 /* Pattern 033 — balanced heading line breaks */
@@ -109,6 +124,16 @@ h1, h2, h3, h4 {
 .sidebar-scroll {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
+  /* Pattern 044 — contain scroll within sidebar; no bounce-bleed */
+  overscroll-behavior: contain;
+}
+
+/* ============================================================
+   PATTERN 067 — no user-select on interactive chrome
+   ============================================================ */
+button, [role="button"], label, summary {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* ============================================================
@@ -121,12 +146,6 @@ h1, h2, h3, h4 {
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
   }
-}
-
-/* ============================================================
-   PATTERN 092 — reduced-motion fallback for scroll
-   ============================================================ */
-@media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
 
@@ -180,8 +199,7 @@ h1, h2, h3, h4 {
 @keyframes hue-slide { to { background-position: 300% 0; } }
 
 /* ============================================================
-   PATTERN 001 — Rotating conic-gradient glow border (on hover)
-   @property lets the gradient angle interpolate smoothly
+   PATTERN 001 — @property lets glow angle interpolate
    ============================================================ */
 @property --glow-angle {
   syntax: "<angle>";
@@ -199,24 +217,28 @@ h1, h2, h3, h4 {
     radial-gradient(ellipse at 80% 20%, rgb(139 92 246 / .25), transparent 38%),
     linear-gradient(135deg, hsl(220, 90%, 14%), hsl(260, 80%, 22%));
   color: white;
+  /* Pattern 064 — safe area on sides */
+  padding-left: max(var(--fluid-px, 1rem), var(--safe-left));
+  padding-right: max(var(--fluid-px, 1rem), var(--safe-right));
 }
 
 /* ============================================================
    PATTERN 022/079 — Fluid spacing + fluid page gutter
    ============================================================ */
 .fluid-gutter {
-  padding-inline: clamp(1rem, 4vw, 4rem);
+  --fluid-px: clamp(1rem, 4vw, 4rem);
+  padding-inline: var(--fluid-px);
 }
 
 /* ============================================================
    PATTERN 021 — Fluid type with clamp()
    ============================================================ */
 .fluid-heading {
-  font-size: clamp(1.8rem, 5vw, 4rem);
+  font-size: clamp(1.65rem, 6vw + .5rem, 4rem);
   line-height: 1.05;
 }
 .fluid-section-heading {
-  font-size: clamp(1.15rem, 2.5vw, 1.85rem);
+  font-size: clamp(1.1rem, 2.5vw, 1.85rem);
   line-height: 1.2;
 }
 
@@ -226,20 +248,30 @@ h1, h2, h3, h4 {
    ============================================================ */
 .tool-grid-container {
   container-type: inline-size;
+  container-name: tool-grid;
 }
 .auto-fit-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(14rem, 100%), 1fr));
+  gap: clamp(.75rem, 2vw, 1.25rem);
 }
-@container (width < 36rem) {
+
+/* Narrow container → 2 tight columns */
+@container tool-grid (width < 28rem) {
+  .auto-fit-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: .625rem;
+  }
+}
+/* Very narrow → single column */
+@container tool-grid (width < 18rem) {
   .auto-fit-grid {
     grid-template-columns: 1fr;
   }
 }
 
 /* ============================================================
-   PATTERN 091 — Horizontal scroll snapping (category chips)
+   PATTERN 060 — touch-action on horizontal scrollers
    ============================================================ */
 .scroll-snap-x {
   display: grid;
@@ -247,6 +279,11 @@ h1, h2, h3, h4 {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+  /* Allow horizontal pan without hijacking vertical scroll */
+  touch-action: pan-x;
+  /* Pattern 044 — contain overscroll */
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 .scroll-snap-x::-webkit-scrollbar { display: none; }
 .scroll-snap-x > * { scroll-snap-align: start; }
@@ -280,9 +317,7 @@ h1, h2, h3, h4 {
   background-color: hsl(var(--card));
   border: 1.5px solid hsl(var(--card-border));
   border-radius: 0.875rem;
-  /* Pattern 006 — layered box-shadow for natural elevation */
   box-shadow: 0 1px 2px rgb(15 23 42 / .06), 0 4px 16px rgb(15 23 42 / .06);
-  /* Pattern 085 — individual transform properties */
   translate: 0 0;
   scale: 1;
   transition: translate 200ms ease, scale 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
@@ -301,6 +336,11 @@ h1, h2, h3, h4 {
       translate: 0 0;
       box-shadow: 0 1px 2px rgb(15 23 42 / .06), 0 4px 16px rgb(15 23 42 / .06);
     }
+    /* Pattern 030b — active press state instead on touch */
+    &:active {
+      scale: 0.97;
+      box-shadow: 0 1px 4px rgb(15 23 42 / .1);
+    }
   }
 
   /* Pattern 001 — rotating conic glow on hover */
@@ -314,9 +354,12 @@ h1, h2, h3, h4 {
     transition: opacity 200ms ease;
     z-index: -1;
   }
-  &:hover::before {
-    opacity: 1;
-    animation: glow-spin 3s linear infinite;
+  /* Only on hover-capable devices */
+  @media (hover: hover) {
+    &:hover::before {
+      opacity: 1;
+      animation: glow-spin 3s linear infinite;
+    }
   }
 }
 
@@ -329,7 +372,7 @@ h1, h2, h3, h4 {
   animation-delay: calc(var(--card-i, 0) * 40ms);
 }
 
-/* Pattern 088 — @starting-style entry when first painted */
+/* Pattern 088 — @starting-style entry */
 @supports (animation-timeline: scroll()) {
   @starting-style {
     .tool-card { opacity: 0; translate: 0 .5rem; }
@@ -424,9 +467,8 @@ h1, h2, h3, h4 {
    Pattern 115 — touch targets for coarse pointers
    ============================================================ */
 @media (pointer: coarse) {
-  .sidebar-btn {
-    min-block-size: 48px;
-  }
+  .sidebar-btn { min-block-size: 48px; }
+  button, a, [role="button"] { min-block-size: 44px; }
 }
 
 /* ============================================================
@@ -457,4 +499,263 @@ h1, h2, h3, h4 {
 input:focus-visible, button:focus-visible, a:focus-visible {
   outline: 2px solid hsl(var(--primary));
   outline-offset: 3px;
+}
+
+/* ============================================================
+   Pattern 056 — Mobile nav drawer: height animation
+   Uses grid-template-rows trick for smooth open/close
+   ============================================================ */
+.mobile-nav-outer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 240ms cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+}
+.mobile-nav-outer[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+.mobile-nav-inner {
+  min-height: 0;
+}
+
+/* ============================================================
+   Pattern 064 — Safe-area-aware page shell
+   ============================================================ */
+.page-safe {
+  padding-left: max(1rem, var(--safe-left));
+  padding-right: max(1rem, var(--safe-right));
+}
+
+.footer-safe {
+  padding-bottom: max(2rem, calc(1.5rem + var(--safe-bottom)));
+}
+
+/* ============================================================
+   Pattern 038 — Logical properties for i18n-ready spacing
+   ============================================================ */
+.guide-article {
+  /* Logical block/inline padding — correct in RTL layouts too */
+  padding-block: clamp(2rem, 5vw, 4rem);
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+/* ============================================================
+   Pattern 100 — @layer for PageLayout base styles
+   Keeps specificity flat; utility classes always win
+   ============================================================ */
+@layer page-layout {
+  .page-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgb(0 0 0 / .05);
+    /* Pattern 064 — notch-safe header */
+    padding-top: var(--safe-top);
+  }
+
+  .page-breadcrumb {
+    background: white;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: .75rem;
+    color: #64748b;
+  }
+}
+
+/* ============================================================
+   Pattern 070 — Horizontal pill scroll for mobile related
+   items (modules, tags) — momentum + hide bar
+   ============================================================ */
+.pill-scroll {
+  display: flex;
+  gap: .5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+  padding-block: .25rem;
+  /* Fade right edge to hint overflow */
+  mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+}
+.pill-scroll::-webkit-scrollbar { display: none; }
+.pill-scroll > * { scroll-snap-align: start; flex-shrink: 0; }
+
+/* When fully scrolled right — remove right fade */
+.pill-scroll-wrap {
+  position: relative;
+}
+.pill-scroll-wrap::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2rem;
+  background: linear-gradient(to right, transparent, white);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================================================
+   Pattern 025 — Accordion / disclosure for mobile sidebar
+   ============================================================ */
+.accordion-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 220ms ease;
+}
+.accordion-body[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+.accordion-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ============================================================
+   Pattern 107 — Floating back-to-top button
+   ============================================================ */
+.back-to-top {
+  position: fixed;
+  inset-block-end: calc(1.5rem + var(--safe-bottom));
+  inset-inline-end: 1rem;
+  z-index: 50;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background: hsl(var(--primary));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgb(99 102 241 / .4);
+  opacity: 0;
+  translate: 0 .5rem;
+  pointer-events: none;
+  transition: opacity 200ms ease, translate 200ms ease;
+  border: none;
+  cursor: pointer;
+}
+.back-to-top[data-visible="true"] {
+  opacity: 1;
+  translate: 0 0;
+  pointer-events: auto;
+}
+
+/* ============================================================
+   Pattern 053 — responsive two-column article layout
+   using @container on the article wrapper
+   ============================================================ */
+.article-with-sidebar {
+  container-type: inline-size;
+  container-name: article-layout;
+}
+
+/* Sidebar hidden on narrow containers — stacks below */
+.article-sidebar {
+  display: none;
+}
+
+@container article-layout (width >= 720px) {
+  .article-sidebar {
+    display: block;
+  }
+  .article-main-col {
+    min-width: 0;
+  }
+}
+
+/* ============================================================
+   Pattern 027 — Mobile-first module hero compaction
+   ============================================================ */
+.module-hero {
+  border-bottom: 1px solid #e2e8f0;
+  background: white;
+}
+.module-hero-inner {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-block: clamp(1.5rem, 4vw, 2.5rem);
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+/* ============================================================
+   Pattern 042 — Mobile guide typography scale
+   ============================================================ */
+.guide-h1 {
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+.guide-lead {
+  font-size: clamp(.95rem, 2vw, 1.125rem);
+  line-height: 1.75;
+  color: #475569;
+}
+.guide-section-h2 {
+  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+  font-weight: 800;
+  color: #1e293b;
+}
+
+/* ============================================================
+   Pattern 077 — Responsive navigation indicator
+   Animated underline on active nav link
+   ============================================================ */
+.nav-link {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    right: 50%;
+    height: 2px;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+    transition: left 200ms ease, right 200ms ease;
+  }
+  &[data-active="true"]::after,
+  &:hover::after {
+    left: 0.5rem;
+    right: 0.5rem;
+  }
+}
+
+/* ============================================================
+   Pattern 059 — 100dvh for true mobile viewport height
+   (no browser chrome offset)
+   ============================================================ */
+.h-dvh  { height: 100dvh; }
+.min-h-dvh { min-height: 100dvh; }
+
+/* ============================================================
+   Pattern 106 — @supports progressive enhancement
+   for container queries fallback
+   ============================================================ */
+@supports not (container-type: inline-size) {
+  .auto-fit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 1.25rem;
+  }
+  @media (max-width: 480px) {
+    .auto-fit-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: .625rem;
+    }
+  }
+}
+
+/* ============================================================
+   Pattern 048 — :has() for open-drawer body scroll lock
+   ============================================================ */
+body:has(.mobile-nav-outer[data-open="true"]) {
+  overflow: hidden;
 }

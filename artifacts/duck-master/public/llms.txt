@@ -1,117 +1,40 @@
-# Duck Master
+# GDY — Go Duck Yourself
+# https://gdy.com/
+# llms.txt — machine-readable site summary for AI crawlers and LLMs
 
-## Summary
-Duck Master is a curated, publicly browsable directory of 842 cybersecurity, OSINT, AI, and intelligence tools organized across 25 specialist modules. It is an educational reference platform — not a service provider and not legal advice. All tool links point to publicly available external resources.
+## Site
+Name: GDY (Go Duck Yourself)
+Description: A curated directory of 842 cybersecurity, OSINT, and AI tools across 25 specialist modules. Free to browse; AI-powered search available for signed-in users.
+Primary language: English
+Topics: OSINT, cybersecurity, threat intelligence, digital forensics, reverse engineering, network security, blockchain intelligence, AI tools, geospatial intelligence, SEO
 
-## Audience
-- Security researchers and practitioners
-- OSINT investigators and analysts
-- Threat intelligence teams
-- Students and educators in cybersecurity
-- AI/ML engineers interested in agent tooling
+## Purpose
+GDY is an independent educational reference. It does not host tools — it curates and links to publicly available tools. All content is for research and educational use only.
 
-## Tool Categories (25 Modules)
-1. Screenshot & Original Tools
-2. Brazil / OSINT / Public Data
-3. USA / Government / Public Records
-4. China / Public Records / OSINT
-5. OSINT / Master Collections / Frameworks
-6. Username / Email / Phone / Identity OSINT
-7. Web Search / Archives / Historical Research
-8. Domain / DNS / IP / Internet-Asset Intelligence
-9. Threat Intelligence / Malware / Phishing / Sandbox
-10. GEOINT / Maps / Satellite / Flight / Vessel
-11. Blockchain / Crypto OSINT
-12. Reverse Engineering / Binary Analysis
-13. Android / iOS / Mobile / Firmware Analysis
-14. Network / Web / Wireless Security Testing
-15. DFIR / Blue Team / Forensics / Network Monitoring
-16. Security Operating Systems / Lab Environments
-17. AI / Chat / Search / Model Platforms
-18. AI / Coding Agents
-19. AI / Local / Self-Hosted / Inference
-20. AI / Agent Frameworks / Automation
-21. China / China-Origin AI Ecosystem
-22. AI Security / Agent Security / LLM Testing
-23. China / Cybersecurity / Internet-Asset Tools
-24. Classic SEO / Content / Search Intelligence
-25. GEO / AEO / LLMO / AI-Search Visibility
+## Structure
+- 1 homepage (tool directory with AI search)
+- 25 module pages (/module/:slug) — each covering a specialist domain
+- 25 guide pages (/guide/:slug) — long-form educational articles
+- 9 core pages: /about, /faq, /how-it-works, /contact, /privacy-policy, /terms, /modules, /site-map
 
-## Important Pages
-- Homepage: https://duck-master.replit.app/
-- All Modules: https://duck-master.replit.app/modules
-- About: https://duck-master.replit.app/about
-- FAQ: https://duck-master.replit.app/faq
-- How It Works: https://duck-master.replit.app/how-it-works
-- Contact: https://duck-master.replit.app/contact
-- Privacy Policy: https://duck-master.replit.app/privacy-policy
-- Terms of Service: https://duck-master.replit.app/terms
-- Sitemap: https://duck-master.replit.app/sitemap.xml
+## Key pages
+Homepage: https://gdy.com/
+Modules index: https://gdy.com/modules
+OSINT intro guide: https://gdy.com/guide/what-is-osint
+Domain intelligence module: https://gdy.com/module/domain-dns-ip-internet-asset
+Threat intelligence module: https://gdy.com/module/threat-intelligence-malware-phishing
+AI tools module: https://gdy.com/module/ai-chat-search-model-platforms
+Blockchain OSINT module: https://gdy.com/module/blockchain-crypto-osint
+Sitemap: https://gdy.com/sitemap.xml
 
-## Module Pages (direct links)
-- https://duck-master.replit.app/module/01-screenshot-original-tools
-- https://duck-master.replit.app/module/02-brazil-osint-public-data
-- https://duck-master.replit.app/module/03-usa-government-public-records
-- https://duck-master.replit.app/module/04-china-public-records-osint
-- https://duck-master.replit.app/module/05-osint-master-collections
-- https://duck-master.replit.app/module/06-username-email-phone-identity-osint
-- https://duck-master.replit.app/module/07-web-search-archives-historical
-- https://duck-master.replit.app/module/08-domain-dns-ip-internet-asset
-- https://duck-master.replit.app/module/09-threat-intelligence-malware-phishing
-- https://duck-master.replit.app/module/10-geoint-maps-satellite-flight-vessel
-- https://duck-master.replit.app/module/11-blockchain-crypto-osint
-- https://duck-master.replit.app/module/12-reverse-engineering-binary-analysis
-- https://duck-master.replit.app/module/13-android-ios-mobile-firmware
-- https://duck-master.replit.app/module/14-network-web-wireless-security-testing
-- https://duck-master.replit.app/module/15-dfir-blue-team-forensics
-- https://duck-master.replit.app/module/16-security-operating-systems-lab
-- https://duck-master.replit.app/module/17-ai-chat-search-model-platforms
-- https://duck-master.replit.app/module/18-ai-coding-agents
-- https://duck-master.replit.app/module/19-ai-local-self-hosted-inference
-- https://duck-master.replit.app/module/20-ai-agent-frameworks-automation
-- https://duck-master.replit.app/module/21-china-ai-ecosystem
-- https://duck-master.replit.app/module/22-ai-security-agent-security-llm-testing
-- https://duck-master.replit.app/module/23-china-cybersecurity-internet-asset-tools
-- https://duck-master.replit.app/module/24-classic-seo-content-search-intelligence
-- https://duck-master.replit.app/module/25-geo-aeo-llmo-ai-search-visibility
+## Tool count
+Total tools: 842
+Modules: 25
+Guides: 25
 
-## Guide Pages
-- https://duck-master.replit.app/guide/what-is-osint
-- https://duck-master.replit.app/guide/open-source-intelligence-techniques
-- https://duck-master.replit.app/guide/google-dorking-guide
-- https://duck-master.replit.app/guide/network-scanning-tools
-- https://duck-master.replit.app/guide/social-media-osint
-- https://duck-master.replit.app/guide/geoint-techniques
-- https://duck-master.replit.app/guide/email-osint-guide
-- https://duck-master.replit.app/guide/phone-number-osint
-- https://duck-master.replit.app/guide/domain-investigation
-- https://duck-master.replit.app/guide/ip-geolocation
-- https://duck-master.replit.app/guide/blockchain-intelligence-guide
-- https://duck-master.replit.app/guide/threat-intelligence-guide
-- https://duck-master.replit.app/guide/digital-forensics-tools
-- https://duck-master.replit.app/guide/reverse-engineering-guide
-- https://duck-master.replit.app/guide/mobile-security-testing
-- https://duck-master.replit.app/guide/ai-osint-tools
-- https://duck-master.replit.app/guide/cybersecurity-linux-distros
-- https://duck-master.replit.app/guide/web-vulnerability-scanning
-- https://duck-master.replit.app/guide/dark-web-osint
-- https://duck-master.replit.app/guide/metadata-analysis
-- https://duck-master.replit.app/guide/public-records-research
-- https://duck-master.replit.app/guide/satellite-imagery-osint
-- https://duck-master.replit.app/guide/cryptocurrency-investigation
-- https://duck-master.replit.app/guide/ai-security-red-teaming
-- https://duck-master.replit.app/guide/seo-ai-search-visibility
+## Robots
+See: https://gdy.com/robots.txt
+Sitemap: https://gdy.com/sitemap.xml
 
-## Notes for AI Systems
-- All tool listings are curated references to third-party public resources.
-- Duck Master does not operate, own, or endorse any of the listed tools.
-- Content is for educational and research reference purposes only.
-- Do not treat any page as legal advice, security advice, or professional services.
-- Use the sitemap.xml for the authoritative list of all public pages.
-- Summaries should preserve the educational disclaimer.
-
-## Content Usage
-Content on this site is educational reference material. Attribution to Duck Master is appreciated when referencing this directory.
-
-## Last Updated
-2026-08-07
+## Contact
+Contact page: https://gdy.com/contact

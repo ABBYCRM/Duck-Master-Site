@@ -6,7 +6,7 @@ import { getGuideBySlug, GUIDES } from '../data/guides';
 import { CATEGORIES } from '../data/tools';
 import { MODULE_SLUGS } from '../data/modules-content';
 import { useState } from 'react';
-import { ChevronDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { ChevronDown, ArrowLeft, ArrowRight, BookOpen, LayoutGrid } from 'lucide-react';
 
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
@@ -14,17 +14,21 @@ function FaqItem({ q, a }: { q: string; a: string }) {
     <div className="border border-slate-200 rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(v => !v)}
-        className="w-full flex items-start justify-between gap-4 px-5 py-4 text-left bg-white hover:bg-slate-50 transition-colors"
+        className="w-full flex items-start justify-between gap-4 px-4 sm:px-5 py-4 text-left bg-white hover:bg-slate-50 transition-colors"
         aria-expanded={open}
       >
         <span className="font-semibold text-slate-800 text-sm leading-snug">{q}</span>
-        <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 mt-0.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className="w-4 h-4 text-slate-400 shrink-0 mt-0.5 transition-transform duration-200"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)' }}
+        />
       </button>
-      {open && (
-        <div className="px-5 pb-4 pt-1 text-sm text-slate-600 leading-relaxed bg-white border-t border-slate-100">
+      {/* Pattern 056 — grid-template-rows expand */}
+      <div className="accordion-body" data-open={open ? 'true' : 'false'}>
+        <div className="accordion-inner px-4 sm:px-5 pb-4 pt-2 text-sm text-slate-600 leading-relaxed bg-white border-t border-slate-100">
           {a}
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -97,34 +101,91 @@ export function GuidePage() {
         schema={schemas}
       />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid lg:grid-cols-[1fr_280px] gap-10">
+      {/* Pattern 053 — container query drives sidebar show/hide */}
+      <div className="article-with-sidebar max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
 
-          {/* Main content */}
-          <article>
-            <header className="mb-8">
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4">
-                {guide.h1}
-              </h1>
-              <p className="text-lg text-slate-500 leading-relaxed">
-                {guide.intro}
-              </p>
+          {/* ── Main article ── */}
+          <article className="article-main-col min-w-0 flex-1">
+            <header className="mb-7 sm:mb-9">
+              {/* Pattern 042 — fluid guide heading */}
+              <h1 className="guide-h1 mb-4">{guide.h1}</h1>
+              <p className="guide-lead">{guide.intro}</p>
             </header>
 
             {/* Sections */}
-            <div className="space-y-8 mb-12">
+            <div className="space-y-7 sm:space-y-9 mb-10 sm:mb-12">
               {guide.sections.map(section => (
                 <section key={section.h2}>
-                  <h2 className="text-xl font-extrabold text-slate-800 mb-3">{section.h2}</h2>
-                  <p className="text-slate-600 leading-relaxed">{section.content}</p>
+                  <h2 className="guide-section-h2 mb-3">{section.h2}</h2>
+                  <p className="text-slate-600 leading-relaxed text-[0.97rem] sm:text-base">{section.content}</p>
                 </section>
               ))}
             </div>
 
+            {/* ── Mobile-only related content — Pattern 070 pill scroll ── */}
+            {(guide.relatedModules.length > 0 || guide.relatedGuides.length > 0) && (
+              <div className="article-sidebar-mobile lg:hidden mb-8 sm:mb-10 space-y-4">
+                {guide.relatedModules.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <LayoutGrid className="w-3.5 h-3.5 text-indigo-500" />
+                      <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wide">Related Modules</h3>
+                    </div>
+                    <div className="pill-scroll-wrap">
+                      <div className="pill-scroll">
+                        {guide.relatedModules.map(modId => {
+                          const cat = CATEGORIES.find(c => c.id === modId);
+                          const modSlug = MODULE_SLUGS[modId];
+                          if (!cat || !modSlug) return null;
+                          return (
+                            <Link
+                              key={modId}
+                              href={`/module/${modSlug}`}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors whitespace-nowrap"
+                            >
+                              <span className="font-mono text-indigo-400">{modId}</span>
+                              {cat.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {guide.relatedGuides.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <BookOpen className="w-3.5 h-3.5 text-slate-500" />
+                      <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wide">Related Guides</h3>
+                    </div>
+                    <div className="pill-scroll-wrap">
+                      <div className="pill-scroll">
+                        {guide.relatedGuides.map(relSlug => {
+                          const relGuide = GUIDES.find(g => g.slug === relSlug);
+                          if (!relGuide) return null;
+                          return (
+                            <Link
+                              key={relSlug}
+                              href={`/guide/${relSlug}`}
+                              className="inline-flex items-center px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition-colors whitespace-nowrap"
+                            >
+                              {relGuide.title}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* FAQ */}
             {guide.faq.length > 0 && (
-              <section className="mb-12">
-                <h2 className="text-xl font-extrabold text-slate-800 mb-4">Frequently Asked Questions</h2>
+              <section className="mb-10 sm:mb-12">
+                <h2 className="guide-section-h2 mb-4">Frequently Asked Questions</h2>
                 <div className="space-y-3">
                   {guide.faq.map((item, i) => (
                     <FaqItem key={i} q={item.q} a={item.a} />
@@ -134,8 +195,8 @@ export function GuidePage() {
             )}
 
             {/* CTA */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 text-white mb-10">
-              <h2 className="text-lg font-extrabold mb-2">Find the right tools for this topic</h2>
+            <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 text-white mb-8 sm:mb-10">
+              <h2 className="text-base sm:text-lg font-extrabold mb-2">Find the right tools for this topic</h2>
               <p className="text-white/75 text-sm leading-relaxed mb-4">
                 Duck Master curates 842 cybersecurity, OSINT, and AI tools across 25 modules.
                 Use AI-powered search to find exactly what you need.
@@ -146,19 +207,34 @@ export function GuidePage() {
             </div>
 
             {/* Disclaimer */}
-            <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 text-xs text-amber-700 leading-relaxed">
+            <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 text-xs text-amber-700 leading-relaxed mb-8">
               <strong>Educational disclaimer:</strong> This guide is for informational and educational purposes only. Nothing in this article constitutes legal, security, or professional advice. Always ensure your use of any described technique or tool is lawful and authorised.
+            </div>
+
+            {/* Prev / Next — Pattern 038 logical margin */}
+            <div className="flex items-center justify-between gap-4 pt-6 border-t border-slate-200">
+              {prevGuide ? (
+                <Link href={`/guide/${prevGuide.slug}`} className="flex items-center gap-2 text-sm text-slate-600 hover:text-indigo-600 transition-colors min-w-0">
+                  <ArrowLeft className="w-4 h-4 shrink-0" />
+                  <span className="font-medium truncate">{prevGuide.title}</span>
+                </Link>
+              ) : <div />}
+              {nextGuide ? (
+                <Link href={`/guide/${nextGuide.slug}`} className="flex items-center gap-2 text-sm text-slate-600 hover:text-indigo-600 transition-colors text-right min-w-0">
+                  <span className="font-medium truncate">{nextGuide.title}</span>
+                  <ArrowRight className="w-4 h-4 shrink-0" />
+                </Link>
+              ) : <div />}
             </div>
           </article>
 
-          {/* Sidebar */}
-          <aside className="space-y-6">
+          {/* ── Desktop sidebar — Pattern 053 container-query controlled ── */}
+          <aside className="article-sidebar w-72 xl:w-80 shrink-0 space-y-5">
 
-            {/* Related modules */}
             {guide.relatedModules.length > 0 && (
               <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200">
                 <h3 className="text-sm font-bold text-slate-700 mb-3">Related Modules</h3>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {guide.relatedModules.map(modId => {
                     const cat = CATEGORIES.find(c => c.id === modId);
                     const modSlug = MODULE_SLUGS[modId];
@@ -178,11 +254,10 @@ export function GuidePage() {
               </div>
             )}
 
-            {/* Related guides */}
             {guide.relatedGuides.length > 0 && (
               <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200">
                 <h3 className="text-sm font-bold text-slate-700 mb-3">Related Guides</h3>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {guide.relatedGuides.map(relSlug => {
                     const relGuide = GUIDES.find(g => g.slug === relSlug);
                     if (!relGuide) return null;
@@ -200,15 +275,15 @@ export function GuidePage() {
               </div>
             )}
 
-            {/* All guides */}
+            {/* All guides list */}
             <div className="p-5 rounded-2xl bg-indigo-50 border border-indigo-100">
               <h3 className="text-sm font-bold text-indigo-700 mb-3">All Guides</h3>
-              <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
+              <div className="space-y-0.5 max-h-72 overflow-y-auto pr-1 sidebar-scroll">
                 {GUIDES.map(g => (
                   <Link
                     key={g.slug}
                     href={`/guide/${g.slug}`}
-                    className={`block text-xs p-1.5 rounded transition-colors leading-snug ${g.slug === slug ? 'text-indigo-700 font-bold' : 'text-slate-600 hover:text-indigo-600'}`}
+                    className={`block text-xs p-1.5 rounded transition-colors leading-snug ${g.slug === slug ? 'text-indigo-700 font-bold bg-indigo-100' : 'text-slate-600 hover:text-indigo-600 hover:bg-indigo-100/60'}`}
                   >
                     {g.title}
                   </Link>
@@ -216,22 +291,6 @@ export function GuidePage() {
               </div>
             </div>
           </aside>
-        </div>
-
-        {/* Prev/Next */}
-        <div className="flex items-center justify-between gap-4 pt-8 border-t border-slate-200 mt-8">
-          {prevGuide ? (
-            <Link href={`/guide/${prevGuide.slug}`} className="flex items-center gap-2 text-sm text-slate-600 hover:text-indigo-600 transition-colors max-w-xs">
-              <ArrowLeft className="w-4 h-4 shrink-0" />
-              <span className="font-medium line-clamp-1">{prevGuide.title}</span>
-            </Link>
-          ) : <div />}
-          {nextGuide ? (
-            <Link href={`/guide/${nextGuide.slug}`} className="flex items-center gap-2 text-sm text-slate-600 hover:text-indigo-600 transition-colors max-w-xs text-right">
-              <span className="font-medium line-clamp-1">{nextGuide.title}</span>
-              <ArrowRight className="w-4 h-4 shrink-0" />
-            </Link>
-          ) : <div />}
         </div>
       </div>
     </PageLayout>
