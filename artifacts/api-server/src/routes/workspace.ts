@@ -1,6 +1,8 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, savedToolsTable, searchHistoryTable } from "@workspace/db";
 import { and, desc, eq } from "drizzle-orm";
+import { workspaceMutationLimiter } from "../lib/rate-limit";
+import { sanitizeString } from "../lib/sanitize";
 
 const router: IRouter = Router();
 
@@ -32,7 +34,7 @@ router.get("/workspace/saved", async (req: Request, res: Response) => {
 
 // ── POST /workspace/saved — save a tool (idempotent) ─────────────────────
 
-router.post("/workspace/saved", async (req: Request, res: Response) => {
+router.post("/workspace/saved", workspaceMutationLimiter, async (req: Request, res: Response) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Unauthorized" });
     return;
@@ -44,14 +46,26 @@ router.post("/workspace/saved", async (req: Request, res: Response) => {
     return;
   }
 
+  // Validate toolUrl is an absolute https URL pointing to a known tool
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(String(toolUrl));
+    if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
+      throw new Error("invalid protocol");
+    }
+  } catch {
+    res.status(400).json({ error: "toolUrl must be a valid http/https URL" });
+    return;
+  }
+
   const [row] = await db
     .insert(savedToolsTable)
     .values({
       userId: req.user.id,
-      toolUrl: String(toolUrl).slice(0, 2048),
-      toolName: String(toolName).slice(0, 512),
-      categoryId: String(categoryId).slice(0, 64),
-      categoryLabel: String(categoryLabel).slice(0, 256),
+      toolUrl: parsedUrl.href.slice(0, 2048),
+      toolName: sanitizeString(String(toolName), 512),
+      categoryId: sanitizeString(String(categoryId), 64),
+      categoryLabel: sanitizeString(String(categoryLabel), 256),
     })
     .onConflictDoUpdate({
       target: [savedToolsTable.userId, savedToolsTable.toolUrl],
@@ -71,7 +85,7 @@ router.post("/workspace/saved", async (req: Request, res: Response) => {
 
 // ── DELETE /workspace/saved/:toolId — remove a saved tool for this user ───
 
-router.delete("/workspace/saved/:toolId", async (req: Request, res: Response) => {
+router.delete("/workspace/saved/:toolId", workspaceMutationLimiter, async (req: Request, res: Response) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Unauthorized" });
     return;

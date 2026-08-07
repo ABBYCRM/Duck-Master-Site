@@ -1,7 +1,8 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { db, searchHistoryTable, savedToolsTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { db, searchHistoryTable } from "@workspace/db";
 import { CATEGORIES } from "../lib/tools-data";
+import { searchLimiter } from "../lib/rate-limit";
+import { sanitizeString, redactSecrets } from "../lib/sanitize";
 
 const router: IRouter = Router();
 
@@ -93,33 +94,44 @@ Rank most relevant first. Maximum 20 results.`;
 
   const userPrompt = `Query: "${query}"\n\nTools:\n${toolList}`;
 
-  const res = await fetch(
-    "https://integrate.api.nvidia.com/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+  let res: Response;
+  try {
+    res = await fetch(
+      "https://integrate.api.nvidia.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: process.env.NVIDIA_MODEL ?? "meta/llama-3.3-70b-instruct",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.1,
+          max_tokens: 1024,
+          stream: false,
+        }),
+        // 30-second timeout so a stalled NVIDIA call doesn't block the route
+        signal: AbortSignal.timeout(30_000),
       },
-      body: JSON.stringify({
-        model: process.env.NVIDIA_MODEL ?? "meta/llama-3.3-70b-instruct",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.1,
-        max_tokens: 1024,
-        stream: false,
-      }),
-    },
-  );
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`NVIDIA API error ${res.status}: ${text.slice(0, 200)}`);
+    ) as unknown as Response;
+  } catch (err) {
+    // Network / timeout errors — never include the API key in the message
+    throw new Error(`NVIDIA request failed: ${redactSecrets(String(err))}`);
   }
 
-  const data = (await res.json()) as {
+  if (!res.ok) {
+    // Read body but redact before throwing — status codes alone are safe to log
+    const text = await (res as unknown as globalThis.Response).text().catch(() => "");
+    throw new Error(
+      `NVIDIA API error ${(res as unknown as globalThis.Response).status}: ${redactSecrets(text.slice(0, 120))}`,
+    );
+  }
+
+  const data = (await (res as unknown as globalThis.Response).json()) as {
     choices: Array<{ message: { content: string } }>;
   };
   const content = data.choices?.[0]?.message?.content ?? "[]";
@@ -127,30 +139,34 @@ Rank most relevant first. Maximum 20 results.`;
   // Strip markdown fences if present
   const clean = content.replace(/^```[a-z]*\n?/m, "").replace(/```$/m, "").trim();
 
-  const ranked = JSON.parse(clean) as Array<{
-    index: number;
-    relevance: string;
-  }>;
+  let ranked: Array<{ index: number; relevance: string }>;
+  try {
+    ranked = JSON.parse(clean) as Array<{ index: number; relevance: string }>;
+  } catch {
+    throw new Error("NVIDIA response was not valid JSON");
+  }
 
   return ranked
     .filter((r) => typeof r.index === "number" && candidates[r.index])
     .map((r) => ({
       ...candidates[r.index],
-      relevance: r.relevance ?? null,
+      // Sanitize model output before storing/returning it
+      relevance: r.relevance ? sanitizeString(String(r.relevance), 120) : null,
     }));
 }
 
 // ── Route: POST /search ───────────────────────────────────────────────────
 
-router.post("/search", async (req: Request, res: Response) => {
+router.post("/search", searchLimiter, async (req: Request, res: Response) => {
   if (!req.isAuthenticated()) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
 
-  const rawQuery =
-    typeof req.body?.query === "string" ? req.body.query.trim() : "";
-  if (!rawQuery || rawQuery.length > 500) {
+  // Validate and sanitize query
+  const raw = typeof req.body?.query === "string" ? req.body.query : "";
+  const query = sanitizeString(raw, 500);
+  if (!query) {
     res.status(400).json({ error: "query must be 1–500 characters" });
     return;
   }
@@ -159,38 +175,34 @@ router.post("/search", async (req: Request, res: Response) => {
   const aiEnabled = Boolean(process.env.NVIDIA_API_KEY);
 
   try {
-    // Step 1 — local candidate filter (fast)
-    const candidates = localSearch(rawQuery, aiEnabled ? 60 : 150);
+    const candidates = localSearch(query, aiEnabled ? 60 : 150);
 
-    // Step 2 — optionally re-rank with NVIDIA NIM
     let results: SearchResultItem[];
     let aiPowered = false;
 
     if (aiEnabled && candidates.length > 0) {
       try {
-        results = await nvidiaSearch(rawQuery, candidates);
+        results = await nvidiaSearch(query, candidates);
         aiPowered = true;
       } catch (err) {
-        req.log.warn({ err }, "NVIDIA search failed, falling back to local");
+        // Log the error safely — redactSecrets is already applied inside nvidiaSearch
+        req.log.warn({ errMsg: redactSecrets(String(err)) }, "NVIDIA search failed, falling back to local");
         results = candidates.map((t) => ({ ...t, relevance: null }));
       }
     } else {
       results = candidates.map((t) => ({ ...t, relevance: null }));
     }
 
-    // Step 3 — persist to per-user history (fire and forget)
+    // Persist to per-user search history (fire-and-forget)
     db.insert(searchHistoryTable)
-      .values({
-        userId,
-        query: rawQuery,
-        resultCount: results.length,
-        aiPowered,
-      })
-      .catch((e) => req.log.error({ err: e }, "Failed to save search history"));
+      .values({ userId, query, resultCount: results.length, aiPowered })
+      .catch((e) =>
+        req.log.error({ err: e }, "Failed to save search history"),
+      );
 
-    res.json({ results, aiPowered, query: rawQuery });
+    res.json({ results, aiPowered, query });
   } catch (err) {
-    req.log.error({ err }, "Search error");
+    req.log.error({ errMsg: redactSecrets(String(err)) }, "Search error");
     res.status(500).json({ error: "Search failed" });
   }
 });

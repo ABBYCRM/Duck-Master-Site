@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { useCallback, useEffect, useState } from 'react';
 import type { AuthUser } from '@workspace/api-client-react';
 

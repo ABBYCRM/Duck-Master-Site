@@ -1,0 +1,13 @@
+/* TEAM */
+Project: Duck Master — Cybersecurity & OSINT Tool Directory
+Description: A curated directory of 842 cybersecurity, OSINT, and AI tools across 25 modules.
+Language: English
+
+/* THANKS */
+To the open-source community building the tools documented here.
+To the OSINT practitioners sharing knowledge publicly.
+
+/* SITE */
+Last update: 2026-08-07
+Standards: HTML5, CSS3, ARIA
+Components: React, Vite, TypeScript, Tailwind CSS

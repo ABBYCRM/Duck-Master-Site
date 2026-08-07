@@ -7,6 +7,7 @@ import {
 import { db, usersTable } from '@workspace/db';
 import { Router, type IRouter, type Request, type Response } from 'express';
 import * as oidc from 'openid-client';
+import { authLimiter } from '../lib/rate-limit';
 
 import {
   clearSession,
@@ -130,7 +131,8 @@ router.get('/auth/user', (req: Request, res: Response) => {
   );
 });
 
-router.get('/login', async (req: Request, res: Response) => {
+// Rate-limited: 15 attempts / 15 min / IP to block login enumeration
+router.get('/login', authLimiter, async (req: Request, res: Response) => {
   const config = await getOidcConfig();
   const callbackUrl = `${getOrigin(req)}/api/callback`;
 
@@ -161,7 +163,7 @@ router.get('/login', async (req: Request, res: Response) => {
 
 // Query params are not validated because the OIDC provider may include
 // parameters not expressed in the schema.
-router.get('/callback', async (req: Request, res: Response) => {
+router.get('/callback', authLimiter, async (req: Request, res: Response) => {
   const config = await getOidcConfig();
   const callbackUrl = `${getOrigin(req)}/api/callback`;
 
@@ -244,6 +246,7 @@ router.get('/logout', async (req: Request, res: Response) => {
 
 router.post(
   '/mobile-auth/token-exchange',
+  authLimiter,
   async (req: Request, res: Response) => {
     const parsed = ExchangeMobileAuthorizationCodeBody.safeParse(req.body);
     if (!parsed.success) {
