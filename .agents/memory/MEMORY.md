@@ -3,3 +3,4 @@
 - [Duck Master CSS handbook tricks](duck-master-css-tricks.md) — 30+ patterns from two handbooks applied; do not reset index.css without re-applying them.
 - [Duck Master SEO + routing](duck-master-seo-routing.md) — 60-page architecture, sitemap slugs, HelmetProvider, react-helmet-async SeoHead component.
 - [Duck Master mobile CSS patterns](duck-master-mobile-css.md) — 15+ mobile/tablet patterns added; key classes and patterns listed.
+- [GDY Mobile app](gdy-mobile-app.md) — Expo companion: auth (PKCE expo-auth-session@~7.0.11), dark navy palette, API client wiring, 4 tabs + module detail.

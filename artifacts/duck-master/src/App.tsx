@@ -332,21 +332,10 @@ function Home() {
     const isSaving = savingUrls.has(tool.url);
     const domain = tool.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
 
-    const handleToolOpen = (e: React.MouseEvent) => {
-      if (!isAuthenticated) {
-        e.preventDefault();
-        openLogin('tool-open');
-      }
-    };
-
     return (
       <div
         className="tool-card group p-5 flex flex-col relative overflow-hidden"
         style={{ '--card-color': colorVar, '--card-i': idx } as React.CSSProperties}
-        onClick={!isAuthenticated ? () => openLogin('tool-open') : undefined}
-        role={!isAuthenticated ? 'button' : undefined}
-        tabIndex={!isAuthenticated ? 0 : undefined}
-        onKeyDown={!isAuthenticated ? (e) => { if (e.key === 'Enter' || e.key === ' ') openLogin('tool-open'); } : undefined}
       >
         {/* Badge + save button */}
         <div className="flex items-start justify-between mb-3 gap-2">
@@ -382,7 +371,6 @@ function Home() {
           href={tool.url}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={handleToolOpen}
           className="tool-name-link font-bold text-slate-800 text-sm mb-1 pr-1 line-clamp-1 group-hover:text-indigo-700 transition-colors block"
           aria-label={`${tool.name} — ${tool.url}`}
         >

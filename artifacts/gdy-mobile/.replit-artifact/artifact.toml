@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/gdy-mobile/"
+title = "GDY Mobile — Tool Directory"
+description = "A React Native companion app for the GDY tool directory. Lets users browse 842+ security, OSINT, and AI tools across 25 modules, search client-side for offline use, and save favourite tools synced with their authenticated account via the GDY API server."
+version = "1.0.0"
+id = "artifacts/gdy-mobile"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/gdy-mobile/" ]
+localPort = 26133
+
+[services.development]
+run = "pnpm --filter @workspace/gdy-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/gdy-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/gdy-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "26133"
+BASE_PATH = "/gdy-mobile/"
