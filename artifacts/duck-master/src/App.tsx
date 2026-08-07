@@ -734,19 +734,38 @@ function Home() {
             </div>
           </div>
 
-          <h1 className="fluid-heading font-extrabold tracking-tight mb-2" id="main-content">
-            <span className="gradient-text">GDY</span>
-          </h1>
+          {/* Hero row: text left, duck right */}
+          <div className="flex items-end justify-between gap-4 mb-0">
+            <div className="min-w-0">
+              <h1 className="fluid-heading font-extrabold tracking-tight mb-2" id="main-content">
+                <span className="gradient-text">GDY</span>
+              </h1>
 
-          <p className="text-white/70 text-sm sm:text-base mb-4 sm:mb-5 font-medium max-w-xl">
-            <span className="metric font-bold text-white">{totalTools}</span>
-            {' tools · '}
-            <span className="metric font-bold text-white">{CATEGORIES.length}</span>
-            {' modules'}
-            {isAuthenticated && savedTools.length > 0 && (
-              <>{' · '}<span className="metric font-bold text-indigo-300">{savedTools.length}</span>{' saved'}</>
-            )}
-          </p>
+              <p className="text-white/70 text-sm sm:text-base mb-4 sm:mb-5 font-medium max-w-xl">
+                <span className="metric font-bold text-white">{totalTools}</span>
+                {' tools · '}
+                <span className="metric font-bold text-white">{CATEGORIES.length}</span>
+                {' modules'}
+                {isAuthenticated && savedTools.length > 0 && (
+                  <>{' · '}<span className="metric font-bold text-indigo-300">{savedTools.length}</span>{' saved'}</>
+                )}
+              </p>
+            </div>
+
+            {/* Duck mascot — same image as the opening page */}
+            <img
+              src="/gdy-hero.png"
+              alt=""
+              aria-hidden
+              draggable={false}
+              className="shrink-0 object-contain drop-shadow-2xl pointer-events-none select-none"
+              style={{
+                height: 'clamp(80px, 14vw, 160px)',
+                filter: 'drop-shadow(0 0 20px rgba(139,92,246,0.55))',
+                marginBottom: '-1rem',
+              }}
+            />
+          </div>
 
           {/* Category chip strip — wrapped for right-edge fade hint */}
           <div className="chip-strip-wrap">
