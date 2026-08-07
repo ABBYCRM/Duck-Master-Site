@@ -390,7 +390,7 @@ export function TopicPicker({ onSelectTopic, onBrowseAll }: TopicPickerProps) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.5 }}
-        className="relative z-10 flex flex-col items-center gap-4 mt-8 px-4"
+        className="relative z-10 flex flex-col items-center gap-5 mt-12 px-4"
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -425,7 +425,7 @@ export function TopicPicker({ onSelectTopic, onBrowseAll }: TopicPickerProps) {
       </motion.div>
 
       {/* Dot navigation */}
-      <div className="relative z-10 flex items-center gap-1.5 mt-6">
+      <div className="relative z-10 flex items-center gap-1.5 mt-10">
         {CATEGORIES.map((_, i) => (
           <button
             key={i}
@@ -447,7 +447,7 @@ export function TopicPicker({ onSelectTopic, onBrowseAll }: TopicPickerProps) {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
         onClick={onBrowseAll}
-        className="relative z-10 mt-5 flex items-center gap-1.5 text-xs font-medium transition-colors"
+        className="relative z-10 mt-7 mb-6 flex items-center gap-1.5 text-xs font-medium transition-colors"
         style={{ color: "rgba(255,255,255,0.35)" }}
       >
         <LayoutGrid className="w-3.5 h-3.5" />
