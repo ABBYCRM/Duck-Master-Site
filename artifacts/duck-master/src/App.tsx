@@ -413,7 +413,13 @@ function Home() {
       <div className="p-4 border-b border-slate-100 bg-white shrink-0">
         <div className="flex items-center justify-between mb-3">
           <h1 className="flex items-center">
-            <img src="/gdy-logo.png" alt="GDY — Go Duck Yourself" className="h-8 w-auto object-contain" />
+            <button
+              onClick={() => { setView('topics'); setIsMobileMenuOpen(false); }}
+              className="hover:opacity-75 transition-opacity"
+              aria-label="Back to module picker"
+            >
+              <img src="/gdy-logo.png" alt="GDY — Go Duck Yourself" className="h-8 w-auto object-contain" />
+            </button>
           </h1>
           <button
             className="lg:hidden p-1 rounded-md text-slate-400 hover:text-slate-600 transition-colors"
@@ -737,9 +743,16 @@ function Home() {
           {/* Hero row: text left, duck right */}
           <div className="flex items-end justify-between gap-4 mb-0">
             <div className="min-w-0">
-              <h1 className="fluid-heading font-extrabold tracking-tight mb-2" id="main-content">
+              <button
+                onClick={() => setView('topics')}
+                className="fluid-heading font-extrabold tracking-tight mb-2 block text-left hover:opacity-80 transition-opacity cursor-pointer group"
+                id="main-content"
+                aria-label="Back to module picker"
+                title="Back to module picker"
+              >
                 <span className="gradient-text">GDY</span>
-              </h1>
+                <span className="ml-2 text-white/30 text-base align-middle opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden>↩</span>
+              </button>
 
               <p className="text-white/70 text-sm sm:text-base mb-4 sm:mb-5 font-medium max-w-xl">
                 <span className="metric font-bold text-white">{totalTools}</span>
@@ -752,19 +765,24 @@ function Home() {
               </p>
             </div>
 
-            {/* Duck mascot — same image as the opening page */}
-            <img
-              src="/gdy-hero.png"
-              alt=""
-              aria-hidden
-              draggable={false}
-              className="shrink-0 object-contain drop-shadow-2xl pointer-events-none select-none"
-              style={{
-                height: 'clamp(80px, 14vw, 160px)',
-                filter: 'drop-shadow(0 0 20px rgba(139,92,246,0.55))',
-                marginBottom: '-1rem',
-              }}
-            />
+            {/* Duck mascot — click to go back to the module picker */}
+            <button
+              onClick={() => setView('topics')}
+              aria-label="Back to module picker"
+              className="shrink-0 hover:scale-105 transition-transform duration-200 cursor-pointer"
+              style={{ marginBottom: '-1rem', background: 'none', border: 'none', padding: 0 }}
+            >
+              <img
+                src="/gdy-hero.png"
+                alt="Back to module picker"
+                draggable={false}
+                className="object-contain drop-shadow-2xl select-none"
+                style={{
+                  height: 'clamp(80px, 14vw, 160px)',
+                  filter: 'drop-shadow(0 0 20px rgba(139,92,246,0.55))',
+                }}
+              />
+            </button>
           </div>
 
           {/* Category chip strip — wrapped for right-edge fade hint */}
@@ -783,6 +801,21 @@ function Home() {
             ))}
           </div>
           </div>{/* end chip-strip-wrap */}
+
+          {/* Back to carousel CTA */}
+          <button
+            onClick={() => setView('topics')}
+            className="mt-4 sm:mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95"
+            style={{
+              background: 'rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              color: 'rgba(255,255,255,0.85)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            ← Back to module picker
+          </button>
         </div>
 
         {/* Sticky search bar */}
