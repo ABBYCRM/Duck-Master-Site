@@ -10,6 +10,13 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: Auth
+    description: Browser and mobile authentication endpoints.
+  - name: search
+    description: AI-powered tool search
+  - name: workspace
+    description: Per-user saved tools and search history
+
 paths:
   /healthz:
     get:
@@ -24,6 +31,243 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/user:
+    get:
+      tags: [Auth]
+      operationId: getCurrentAuthUser
+      summary: Get the currently authenticated user
+      responses:
+        '200':
+          description: Auth status resolved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserEnvelope'
+
+  /login:
+    get:
+      tags: [Auth]
+      operationId: beginBrowserLogin
+      summary: Start the browser OIDC login flow
+      parameters:
+        - name: returnTo
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to the OIDC authorization endpoint.
+
+  /callback:
+    get:
+      tags: [Auth]
+      operationId: handleBrowserLoginCallback
+      summary: Complete the browser OIDC login flow
+      parameters:
+        - name: code
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: iss
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to returnTo on success.
+
+  /logout:
+    get:
+      tags: [Auth]
+      operationId: logoutBrowserSession
+      summary: Clear the session and begin OIDC logout
+      parameters:
+        - name: returnTo
+          in: query
+          required: false
+          schema:
+            type: string
+            default: /
+      responses:
+        '302':
+          description: Redirect to OIDC logout.
+
+  /mobile-auth/token-exchange:
+    post:
+      tags: [Auth]
+      operationId: exchangeMobileAuthorizationCode
+      summary: Exchange a mobile OIDC code for a session token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileTokenExchangeRequest'
+      responses:
+        '200':
+          description: Session created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileTokenExchangeSuccess'
+        '400':
+          description: Missing or invalid required fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Token did not contain usable claims.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Token exchange failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /mobile-auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logoutMobileSession
+      summary: Delete a mobile session
+      responses:
+        '200':
+          description: Session deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutSuccess'
+
+  /search:
+    post:
+      tags: [search]
+      operationId: aiSearch
+      summary: AI-powered tool search (NVIDIA NIM)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /workspace/saved:
+    get:
+      tags: [workspace]
+      operationId: getSavedTools
+      summary: Get saved tools for the current user
+      responses:
+        '200':
+          description: Saved tools list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedToolsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    post:
+      tags: [workspace]
+      operationId: saveTool
+      summary: Save a tool to the current user's workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveToolRequest'
+      responses:
+        '200':
+          description: Tool saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedToolItem'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /workspace/saved/{toolId}:
+    delete:
+      tags: [workspace]
+      operationId: removeSavedTool
+      summary: Remove a saved tool from the current user's workspace
+      parameters:
+        - name: toolId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Tool removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteSuccess'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /workspace/history:
+    get:
+      tags: [workspace]
+      operationId: getSearchHistory
+      summary: Get search history for the current user
+      responses:
+        '200':
+          description: Search history list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchHistoryResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +278,183 @@ components:
       required:
         - status
 
+    AuthUser:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          nullable: true
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        profileImageUrl:
+          type: string
+          nullable: true
+
+    AuthUserEnvelope:
+      type: object
+      required: [user]
+      properties:
+        user:
+          oneOf:
+            - $ref: '#/components/schemas/AuthUser'
+            - type: 'null'
+
+    MobileTokenExchangeRequest:
+      type: object
+      required: [code, code_verifier, redirect_uri, state]
+      properties:
+        code:
+          type: string
+          minLength: 1
+        code_verifier:
+          type: string
+          minLength: 1
+        redirect_uri:
+          type: string
+          minLength: 1
+        state:
+          type: string
+          minLength: 1
+        nonce:
+          type: string
+          minLength: 1
+
+    MobileTokenExchangeSuccess:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+
+    LogoutSuccess:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    DeleteSuccess:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 500
+
+    SearchResultItem:
+      type: object
+      required: [url, name, categoryId, categoryLabel]
+      properties:
+        url:
+          type: string
+        name:
+          type: string
+        categoryId:
+          type: string
+        categoryLabel:
+          type: string
+        relevance:
+          type: string
+          nullable: true
+
+    SearchResponse:
+      type: object
+      required: [results, aiPowered, query]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResultItem'
+        aiPowered:
+          type: boolean
+        query:
+          type: string
+
+    SaveToolRequest:
+      type: object
+      required: [toolUrl, toolName, categoryId, categoryLabel]
+      properties:
+        toolUrl:
+          type: string
+        toolName:
+          type: string
+        categoryId:
+          type: string
+        categoryLabel:
+          type: string
+
+    SavedToolItem:
+      type: object
+      required: [id, toolUrl, toolName, categoryId, categoryLabel, savedAt]
+      properties:
+        id:
+          type: number
+        toolUrl:
+          type: string
+        toolName:
+          type: string
+        categoryId:
+          type: string
+        categoryLabel:
+          type: string
+        savedAt:
+          type: string
+          format: date-time
+
+    SavedToolsResponse:
+      type: object
+      required: [saved]
+      properties:
+        saved:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavedToolItem'
+
+    SearchHistoryItem:
+      type: object
+      required: [id, query, resultCount, aiPowered, searchedAt]
+      properties:
+        id:
+          type: number
+        query:
+          type: string
+        resultCount:
+          type: number
+        aiPowered:
+          type: boolean
+        searchedAt:
+          type: string
+          format: date-time
+
+    SearchHistoryResponse:
+      type: object
+      required: [history]
+      properties:
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchHistoryItem'

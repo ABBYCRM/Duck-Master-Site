@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Duck Master — Tool Directory"
+description = "A curated, searchable directory of 900+ cybersecurity, OSINT, AI, and intelligence tools organized into 25 categories. Visitors can browse by category, search across all entries, and open any tool link directly."
+version = "1.0.0"
+id = "artifacts/duck-master"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25664
+
+[services.development]
+run = "pnpm --filter @workspace/duck-master run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/duck-master", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/duck-master/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25664"
+BASE_PATH = "/"

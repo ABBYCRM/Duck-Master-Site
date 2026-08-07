@@ -1,0 +1,460 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   DESIGN TOKENS — Pattern 101 (CSS custom properties)
+   ============================================================ */
+:root {
+  --background: 210 20% 98%;
+  --foreground: 220 15% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 15% 15%;
+  --card-border: 210 20% 90%;
+  --border: 210 20% 90%;
+  --input: 210 20% 90%;
+  --primary: 220 90% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 20% 94%;
+  --secondary-foreground: 220 15% 15%;
+  --muted: 210 20% 94%;
+  --muted-foreground: 220 10% 40%;
+  --radius: 0.5rem;
+
+  /* 25 category colors */
+  --cat-1:  240 85% 55%;
+  --cat-2:  255 85% 55%;
+  --cat-3:  270 85% 55%;
+  --cat-4:  285 85% 55%;
+  --cat-5:  300 85% 55%;
+  --cat-6:  315 85% 55%;
+  --cat-7:  330 85% 55%;
+  --cat-8:  345 85% 55%;
+  --cat-9:    0 85% 55%;
+  --cat-10:  15 85% 55%;
+  --cat-11:  30 85% 45%;
+  --cat-12:  45 85% 40%;
+  --cat-13:  60 85% 40%;
+  --cat-14:  75 85% 40%;
+  --cat-15:  90 85% 45%;
+  --cat-16: 105 85% 45%;
+  --cat-17: 120 85% 45%;
+  --cat-18: 135 85% 45%;
+  --cat-19: 150 85% 45%;
+  --cat-20: 165 85% 45%;
+  --cat-21: 180 85% 45%;
+  --cat-22: 195 85% 45%;
+  --cat-23: 210 85% 55%;
+  --cat-24: 225 85% 55%;
+  --cat-25: 190 85% 55%;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-card: hsl(var(--card));
+  --color-card-border: hsl(var(--card-border));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+html {
+  /* Pattern 092 — smooth anchors with reduced-motion fallback */
+  scroll-behavior: smooth;
+  /* Pattern 096 — reserve scrollbar gutter */
+  scrollbar-gutter: stable;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  /* Pattern 034 — prettier paragraph wrapping */
+  text-wrap: pretty;
+}
+
+/* Pattern 033 — balanced heading line breaks */
+h1, h2, h3, h4 {
+  text-wrap: balance;
+}
+
+/* Pattern 069 — custom text selection colors */
+::selection {
+  background: #bfdbfe;
+  color: #1e3a8a;
+}
+
+/* Pattern 046 — global focus-visible ring */
+:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 3px;
+}
+
+/* Pattern 097 — themed scrollbars */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* ============================================================
+   PATTERN 081 — Global reduced-motion safety net
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* ============================================================
+   PATTERN 092 — reduced-motion fallback for scroll
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* ============================================================
+   PATTERN 112 — Skip link (accessibility)
+   ============================================================ */
+.skip-link {
+  position: fixed;
+  inset: .5rem auto auto .5rem;
+  translate: 0 -200%;
+  z-index: 9999;
+  padding: .6rem 1.2rem;
+  background: hsl(var(--primary));
+  color: white;
+  font-weight: 700;
+  border-radius: .5rem;
+  transition: translate .2s;
+  text-decoration: none;
+}
+.skip-link:focus { translate: 0 0; }
+
+/* ============================================================
+   PATTERN 090 — Scroll-driven page progress bar
+   ============================================================ */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
+  transform-origin: left;
+  scale: 0 1;
+  z-index: 200;
+  animation: read-progress linear;
+  animation-timeline: scroll(nearest block);
+}
+@keyframes read-progress { to { scale: 1 1; } }
+
+/* ============================================================
+   PATTERN 003 — Animated gradient text
+   ============================================================ */
+.gradient-text {
+  color: transparent;
+  background: linear-gradient(90deg, #e0e7ff, #c7d2fe, #a5b4fc, #818cf8, #c7d2fe, #e0e7ff);
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: hue-slide 6s linear infinite;
+}
+@keyframes hue-slide { to { background-position: 300% 0; } }
+
+/* ============================================================
+   PATTERN 001 — Rotating conic-gradient glow border (on hover)
+   @property lets the gradient angle interpolate smoothly
+   ============================================================ */
+@property --glow-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes glow-spin { to { --glow-angle: 1turn; } }
+
+/* ============================================================
+   PATTERN 009 — Spotlight + linear gradient hero
+   ============================================================ */
+.hero-gradient {
+  background:
+    radial-gradient(ellipse at 20% 60%, rgb(99 102 241 / .35), transparent 40%),
+    radial-gradient(ellipse at 80% 20%, rgb(139 92 246 / .25), transparent 38%),
+    linear-gradient(135deg, hsl(220, 90%, 14%), hsl(260, 80%, 22%));
+  color: white;
+}
+
+/* ============================================================
+   PATTERN 022/079 — Fluid spacing + fluid page gutter
+   ============================================================ */
+.fluid-gutter {
+  padding-inline: clamp(1rem, 4vw, 4rem);
+}
+
+/* ============================================================
+   PATTERN 021 — Fluid type with clamp()
+   ============================================================ */
+.fluid-heading {
+  font-size: clamp(1.8rem, 5vw, 4rem);
+  line-height: 1.05;
+}
+.fluid-section-heading {
+  font-size: clamp(1.15rem, 2.5vw, 1.85rem);
+  line-height: 1.2;
+}
+
+/* ============================================================
+   PATTERN 013 / 023 — Auto-fit responsive card grid
+   with container queries
+   ============================================================ */
+.tool-grid-container {
+  container-type: inline-size;
+}
+.auto-fit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: 1.25rem;
+}
+@container (width < 36rem) {
+  .auto-fit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   PATTERN 091 — Horizontal scroll snapping (category chips)
+   ============================================================ */
+.scroll-snap-x {
+  display: grid;
+  grid-auto-flow: column;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.scroll-snap-x::-webkit-scrollbar { display: none; }
+.scroll-snap-x > * { scroll-snap-align: start; }
+
+/* ============================================================
+   PATTERN 008 — Frosted glass panel (sticky search)
+   ============================================================ */
+.glass-panel {
+  background: rgb(255 255 255 / 0.88);
+  backdrop-filter: blur(18px) saturate(140%);
+  border-bottom: 1px solid rgb(0 0 0 / 0.07);
+}
+
+/* ============================================================
+   PATTERN 047 — :focus-within highlight on search wrapper
+   ============================================================ */
+.search-wrapper {
+  position: relative;
+  transition: box-shadow 180ms ease;
+}
+.search-wrapper:focus-within {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / .15);
+}
+
+/* ============================================================
+   PATTERNS 006, 085, 001, 004, 110 — Tool card
+   Natural elevation + individual transform props + glow border + gradient underline + CSS nesting
+   ============================================================ */
+.tool-card {
+  background-color: hsl(var(--card));
+  border: 1.5px solid hsl(var(--card-border));
+  border-radius: 0.875rem;
+  /* Pattern 006 — layered box-shadow for natural elevation */
+  box-shadow: 0 1px 2px rgb(15 23 42 / .06), 0 4px 16px rgb(15 23 42 / .06);
+  /* Pattern 085 — individual transform properties */
+  translate: 0 0;
+  scale: 1;
+  transition: translate 200ms ease, scale 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  contain: layout paint;
+
+  /* CSS nesting — Pattern 110 */
+  &:hover {
+    translate: 0 -3px;
+    box-shadow: 0 8px 28px rgb(15 23 42 / .13);
+    border-color: var(--card-color, hsl(var(--primary)));
+  }
+
+  /* Pattern 030 — only hover on capable devices */
+  @media (hover: none) {
+    &:hover {
+      translate: 0 0;
+      box-shadow: 0 1px 2px rgb(15 23 42 / .06), 0 4px 16px rgb(15 23 42 / .06);
+    }
+  }
+
+  /* Pattern 001 — rotating conic glow on hover */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    border-radius: inherit;
+    background: conic-gradient(from var(--glow-angle), #6366f1, #8b5cf6, #06b6d4, #6366f1);
+    opacity: 0;
+    transition: opacity 200ms ease;
+    z-index: -1;
+  }
+  &:hover::before {
+    opacity: 1;
+    animation: glow-spin 3s linear infinite;
+  }
+}
+
+/* Pattern 082 — stagger-entry animation */
+@keyframes card-enter {
+  from { opacity: 0; translate: 0 .6rem; }
+}
+.tool-card {
+  animation: card-enter .35s ease-out both;
+  animation-delay: calc(var(--card-i, 0) * 40ms);
+}
+
+/* Pattern 088 — @starting-style entry when first painted */
+@supports (animation-timeline: scroll()) {
+  @starting-style {
+    .tool-card { opacity: 0; translate: 0 .5rem; }
+  }
+}
+
+/* Pattern 004 — Gradient underline on tool name */
+.tool-name-link {
+  text-decoration: none;
+  background:
+    linear-gradient(90deg, hsl(var(--primary)), #8b5cf6)
+    0 100% / 0% 2px no-repeat;
+  padding-block-end: .1em;
+  transition: background-size 200ms ease;
+}
+.tool-card:hover .tool-name-link {
+  background-size: 100% 2px;
+}
+
+/* ============================================================
+   Pattern 037 — Tabular numbers for aligned metrics
+   ============================================================ */
+.metric, .tool-count, .cat-badge {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Pattern 075 — Mask fade on sidebar overflow
+   ============================================================ */
+.mask-fade-bottom {
+  mask-image: linear-gradient(to bottom, #000 82%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent);
+}
+
+/* ============================================================
+   Pattern 149/011 — Uppercase label tracking
+   ============================================================ */
+.uppercase-tracking {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+}
+
+/* ============================================================
+   Pattern 116 — content-visibility: auto for performance
+   ============================================================ */
+.content-visibility-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 700px;
+}
+
+/* ============================================================
+   Pattern 013 — Grid-paper dot background
+   ============================================================ */
+.grid-paper-bg {
+  background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* ============================================================
+   Pattern 105 — color-mix() for interactive states
+   ============================================================ */
+.btn-primary {
+  background: hsl(var(--primary));
+  color: white;
+  padding: .6rem 1.4rem;
+  border-radius: .5rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 180ms ease;
+  &:hover {
+    background: color-mix(in oklab, hsl(var(--primary)) 85%, white);
+  }
+}
+
+/* ============================================================
+   Pattern 114 — prefers-contrast: more
+   ============================================================ */
+@media (prefers-contrast: more) {
+  .tool-card {
+    border: 2px solid currentColor;
+    box-shadow: none;
+  }
+  .glass-panel {
+    background: white;
+    backdrop-filter: none;
+  }
+}
+
+/* ============================================================
+   Pattern 115 — touch targets for coarse pointers
+   ============================================================ */
+@media (pointer: coarse) {
+  .sidebar-btn {
+    min-block-size: 48px;
+  }
+}
+
+/* ============================================================
+   Pattern 119 — print styles
+   ============================================================ */
+@media print {
+  aside, .glass-panel, .scroll-progress, .skip-link, .hero-gradient > div { display: none !important; }
+  a[href]::after { content: " (" attr(href) ")"; font-size: .75rem; color: #64748b; }
+  .tool-card { break-inside: avoid; box-shadow: none; border: 1px solid #e2e8f0; }
+}
+
+/* ============================================================
+   Pattern 026 — fit-content for chips/badges
+   ============================================================ */
+.chip {
+  inline-size: fit-content;
+  max-inline-size: 100%;
+}
+
+/* Utility classes */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+input:focus-visible, button:focus-visible, a:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 3px;
+}

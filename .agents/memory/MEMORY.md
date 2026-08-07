@@ -1,0 +1,3 @@
+- [Duck Master auth + multi-tenancy](duck-master-auth-multitenant.md) — Replit Auth + PostgreSQL sessions; all user data scoped by userId at the DB layer.
+- [Duck Master NVIDIA search](duck-master-nvidia-search.md) — POST /search on api-server; local filter → NVIDIA NIM re-rank; key in NVIDIA_API_KEY env var.
+- [Duck Master CSS handbook tricks](duck-master-css-tricks.md) — 30+ patterns from two handbooks applied; do not reset index.css without re-applying them.

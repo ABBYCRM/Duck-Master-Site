@@ -1,6 +1,6 @@
-# [Project name]
+# Duck Master
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A curated, searchable directory of 842 cybersecurity, OSINT, AI, and intelligence tools organized across 25 categories.
 
 ## Run & Operate
 
@@ -30,7 +30,7 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+A single-page static tool directory. Features: live full-text search across all 842+ entries, collapsible category sections, category sidebar with tool counts, and Intersection Observer-based active-section highlighting as you scroll. All data lives in `artifacts/duck-master/src/data/tools.ts` — add new URLs there to expand the directory.
 
 ## User preferences
 
