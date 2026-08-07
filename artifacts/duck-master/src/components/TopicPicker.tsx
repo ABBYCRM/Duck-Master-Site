@@ -120,8 +120,8 @@ function TopicCard({
       style={{
         position: "absolute",
         zIndex: off.zIndex,
-        width: 260,
-        height: 380,
+        width: "clamp(200px, 28vw, 260px)",
+        height: "clamp(300px, 40vh, 360px)",
         transformStyle: "preserve-3d",
         cursor: isCenter ? "default" : "pointer",
       }}
@@ -141,7 +141,7 @@ function TopicCard({
         <img
           src={getImgUrl(cat.id)}
           alt={cat.label}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover object-top"
           style={{ filter: isCenter ? "brightness(0.72)" : "brightness(0.45) saturate(0.6)" }}
           loading="lazy"
           draggable={false}
@@ -271,14 +271,14 @@ export function TopicPicker({ onSelectTopic, onBrowseAll }: TopicPickerProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
+      className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden"
       style={{
         background: "radial-gradient(ellipse 120% 80% at 50% 10%, #0e1a3a 0%, #060b18 60%)",
       }}
     >
       {/* Ambient glow */}
       <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] pointer-events-none"
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] pointer-events-none"
         style={{
           background: "radial-gradient(ellipse, rgba(99,102,241,0.18) 0%, transparent 70%)",
           filter: "blur(40px)",
@@ -288,7 +288,7 @@ export function TopicPicker({ onSelectTopic, onBrowseAll }: TopicPickerProps) {
 
       {/* Dot grid */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-30"
+        className="fixed inset-0 pointer-events-none opacity-30"
         style={{
           backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px)",
           backgroundSize: "32px 32px",
@@ -296,19 +296,26 @@ export function TopicPicker({ onSelectTopic, onBrowseAll }: TopicPickerProps) {
         aria-hidden
       />
 
+      {/* Inner centering wrapper — min-h-full + justify-center works correctly with overflow-y-auto */}
+      <div className="flex flex-col items-center justify-center min-h-full py-4 sm:py-6">
+
       {/* Header — GDY hero logo + tagline */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.5 }}
-        className="relative z-10 text-center mb-6 px-4 flex flex-col items-center"
+        className="relative z-10 text-center mb-3 px-4 flex flex-col items-center"
       >
-        {/* Hero logo image */}
+        {/* Hero logo — height capped so it never dominates the viewport */}
         <img
           src="/gdy-hero.png"
           alt="GDY — Go Duck Yourself"
-          className="w-full max-w-xs sm:max-w-sm md:max-w-md object-contain mb-2 drop-shadow-2xl"
-          style={{ filter: "drop-shadow(0 0 32px rgba(139,92,246,0.5))" }}
+          className="w-full object-contain mb-2 drop-shadow-2xl"
+          style={{
+            maxWidth: "min(400px, 88vw)",
+            maxHeight: "clamp(140px, 22vh, 240px)",
+            filter: "drop-shadow(0 0 28px rgba(139,92,246,0.5))",
+          }}
           draggable={false}
         />
         <p
@@ -319,10 +326,10 @@ export function TopicPicker({ onSelectTopic, onBrowseAll }: TopicPickerProps) {
         </p>
       </motion.div>
 
-      {/* Carousel stage */}
+      {/* Carousel stage — matches card height */}
       <div
         className="relative flex items-center justify-center"
-        style={{ width: "100%", height: 420, perspective: "1000px" }}
+        style={{ width: "100%", height: "clamp(300px, 40vh, 360px)", perspective: "1000px" }}
       >
         {/* Drag layer over center card */}
         <motion.div
@@ -335,8 +342,13 @@ export function TopicPicker({ onSelectTopic, onBrowseAll }: TopicPickerProps) {
           onDragEnd={handleDragEnd}
         />
 
-        {/* Cards */}
-        <div style={{ position: "relative", transformStyle: "preserve-3d" }}>
+        {/* Cards — wrapper explicitly sized = center card size so flex centering aligns correctly */}
+        <div style={{
+          position: "relative",
+          transformStyle: "preserve-3d",
+          width: "clamp(200px, 28vw, 260px)",
+          height: "clamp(300px, 40vh, 360px)",
+        }}>
           {visibleIndices.map(({ delta, realIdx }) => (
             <TopicCard
               key={CATEGORIES[realIdx].id}
@@ -390,7 +402,7 @@ export function TopicPicker({ onSelectTopic, onBrowseAll }: TopicPickerProps) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.5 }}
-        className="relative z-10 flex flex-col items-center gap-5 mt-12 px-4"
+        className="relative z-10 flex flex-col items-center gap-3 sm:gap-4 mt-4 sm:mt-6 px-4"
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -425,7 +437,7 @@ export function TopicPicker({ onSelectTopic, onBrowseAll }: TopicPickerProps) {
       </motion.div>
 
       {/* Dot navigation */}
-      <div className="relative z-10 flex items-center gap-1.5 mt-10">
+      <div className="relative z-10 flex items-center gap-1.5 mt-4 sm:mt-5">
         {CATEGORIES.map((_, i) => (
           <button
             key={i}
@@ -447,12 +459,14 @@ export function TopicPicker({ onSelectTopic, onBrowseAll }: TopicPickerProps) {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
         onClick={onBrowseAll}
-        className="relative z-10 mt-7 mb-6 flex items-center gap-1.5 text-xs font-medium transition-colors"
+        className="relative z-10 mt-3 mb-4 flex items-center gap-1.5 text-xs font-medium transition-colors"
         style={{ color: "rgba(255,255,255,0.35)" }}
       >
         <LayoutGrid className="w-3.5 h-3.5" />
         Browse all 25 modules
       </motion.button>
+
+      </div>{/* end inner centering wrapper */}
     </div>
   );
 }

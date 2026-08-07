@@ -680,7 +680,7 @@ function Home() {
               <Menu className="w-6 h-6" />
             </button>
 
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-2 ml-auto flex-wrap justify-end">
               {/* Topic picker pill */}
               <button
                 onClick={() => setView('topics')}
@@ -723,7 +723,7 @@ function Home() {
           </div>
 
           <h1 className="fluid-heading font-extrabold tracking-tight mb-2" id="main-content">
-            <span className="gradient-text">Duck Master</span>
+            <span className="gradient-text">GDY</span>
           </h1>
 
           <p className="text-white/70 text-base mb-6 font-medium max-w-xl leading-relaxed">
