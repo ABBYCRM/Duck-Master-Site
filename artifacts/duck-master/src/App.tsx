@@ -670,7 +670,7 @@ function Home() {
         className="flex-1 flex flex-col h-full min-w-0 grid-paper-bg relative z-10 overflow-y-auto"
       >
         {/* Hero */}
-        <div className="hero-gradient flex flex-col shrink-0 fluid-gutter pt-10 lg:pt-14 pb-8 relative shadow-lg z-10">
+        <div className="hero-gradient flex flex-col shrink-0 fluid-gutter pt-8 lg:pt-12 pb-5 sm:pb-8 relative shadow-lg z-10">
           <div className="flex items-center justify-between mb-5">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
@@ -726,16 +726,18 @@ function Home() {
             <span className="gradient-text">GDY</span>
           </h1>
 
-          <p className="text-white/70 text-base mb-6 font-medium max-w-xl leading-relaxed">
-            <span className="metric font-bold text-white">{totalTools}</span> curated resources
-            {' · '}
-            <span className="metric font-bold text-white">{CATEGORIES.length}</span> learning modules
+          <p className="text-white/70 text-sm sm:text-base mb-4 sm:mb-5 font-medium max-w-xl">
+            <span className="metric font-bold text-white">{totalTools}</span>
+            {' tools · '}
+            <span className="metric font-bold text-white">{CATEGORIES.length}</span>
+            {' modules'}
             {isAuthenticated && savedTools.length > 0 && (
-              <>{' · '}<span className="metric font-bold text-indigo-300">{savedTools.length}</span> saved</>
+              <>{' · '}<span className="metric font-bold text-indigo-300">{savedTools.length}</span>{' saved'}</>
             )}
           </p>
 
-          {/* Category chip strip */}
+          {/* Category chip strip — wrapped for right-edge fade hint */}
+          <div className="chip-strip-wrap">
           <div className="scroll-snap-x gap-2 pb-2" role="list" aria-label="Jump to module">
             {categoriesWithTools.map(cat => (
               <button
@@ -749,6 +751,7 @@ function Home() {
               </button>
             ))}
           </div>
+          </div>{/* end chip-strip-wrap */}
         </div>
 
         {/* Sticky search bar */}

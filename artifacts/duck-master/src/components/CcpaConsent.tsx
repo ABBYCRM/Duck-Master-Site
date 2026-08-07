@@ -107,8 +107,8 @@ export function CcpaConsent() {
               </div>
             </div>
 
-            {/* CCPA detail strip */}
-            <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-3 sm:gap-6 text-[10px] text-slate-400">
+            {/* CCPA detail strip — hidden on mobile to keep banner compact */}
+            <div className="mt-3 pt-3 border-t border-slate-100 hidden sm:flex flex-wrap gap-3 sm:gap-6 text-[10px] text-slate-400">
               <span>🇺🇸 CCPA — California Consumer Privacy Act</span>
               <span>🇪🇺 GDPR — General Data Protection Regulation</span>
               <span>Data stored in the United States</span>

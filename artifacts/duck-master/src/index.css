@@ -584,6 +584,26 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 .pill-scroll::-webkit-scrollbar { display: none; }
 .pill-scroll > * { scroll-snap-align: start; flex-shrink: 0; }
 
+/* ============================================================
+   Chip strip wrapper — dark right-edge fade for hero scroll hint
+   ============================================================ */
+.chip-strip-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.chip-strip-wrap::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3rem;
+  /* Fades to the hero's end color: hsl(260,80%,22%) */
+  background: linear-gradient(to right, transparent, hsl(260, 80%, 22%));
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* When fully scrolled right — remove right fade */
 .pill-scroll-wrap {
   position: relative;
