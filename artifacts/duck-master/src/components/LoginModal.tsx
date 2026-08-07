@@ -26,7 +26,7 @@ function GoogleIcon() {
   );
 }
 
-type LoginReason = 'save' | 'ai-search' | 'history' | 'generic';
+type LoginReason = 'save' | 'ai-search' | 'history' | 'generic' | 'tool-open';
 
 const REASONS: Record<LoginReason, { title: string; body: string; icon: React.ReactNode }> = {
   save: {
@@ -44,8 +44,13 @@ const REASONS: Record<LoginReason, { title: string; body: string; icon: React.Re
     body: "Sign in to keep track of everything you've searched for.",
     icon: <Clock className="w-5 h-5 text-indigo-500" />,
   },
+  'tool-open': {
+    title: 'Sign in to open tools',
+    body: 'Create a free account to open any of the 842 tools, save your favourites, and unlock AI-powered search.',
+    icon: <ShieldCheck className="w-5 h-5 text-indigo-500" />,
+  },
   generic: {
-    title: 'Join Duck Master',
+    title: 'Join GDY',
     body: 'Save tools, get AI-powered search results, and track your research — all in one place.',
     icon: <ShieldCheck className="w-5 h-5 text-indigo-500" />,
   },
