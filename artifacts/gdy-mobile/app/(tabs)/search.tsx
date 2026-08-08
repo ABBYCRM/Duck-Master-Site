@@ -272,7 +272,7 @@ export default function SearchScreen() {
         <View style={styles.placeholder}>
           <Feather name="search" size={40} color={colors.border} />
           <Text style={[styles.placeholderTitle, { color: colors.mutedForeground }]}>
-            Search tools
+            Search 842+ tools
           </Text>
           <Text style={[styles.placeholderSub, { color: colors.mutedForeground }]}>
             Type a tool name, URL, or category
@@ -327,11 +327,7 @@ export default function SearchScreen() {
                     AI-powered
                   </Text>
                 </View>
-              ) : (
-                <Text style={[styles.resultCount, { color: colors.mutedForeground }]}>
-                  offline search
-                </Text>
-              )}
+              ) : null}
             </View>
           }
           scrollEnabled={results.length > 0}

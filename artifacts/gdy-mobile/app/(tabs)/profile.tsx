@@ -172,9 +172,9 @@ export default function ProfileScreen() {
           </Text>
         </View>
         <View style={styles.infoRow}>
-          <Feather name="wifi-off" size={15} color={colors.mutedForeground} />
+          <Feather name="zap" size={15} color={colors.mutedForeground} />
           <Text style={[styles.infoText, { color: colors.mutedForeground }]}>
-            Search works offline
+            AI-powered search, works offline too
           </Text>
         </View>
         <View style={styles.infoRow}>
