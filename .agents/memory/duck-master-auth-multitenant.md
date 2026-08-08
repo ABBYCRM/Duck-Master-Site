@@ -1,29 +1,34 @@
 ---
 name: Duck Master auth + multi-tenancy
-description: How authentication and tenant isolation are implemented in Duck Master.
+description: Replit Auth OIDC/PKCE setup, session handling, and all-user data scoping patterns
 ---
 
-## Architecture
+## Auth stack
+- Replit Auth (OpenID Connect + PKCE) via `openid-client`
+- Sessions stored in PostgreSQL (`sessions` table) with cookie referencing `sid`
+- `authMiddleware.ts` reads the cookie, loads the session, refreshes the token if expired, attaches `req.user`
 
-- Auth: Replit Auth (OIDC/PKCE) via `openid-client` v6 on the Express API server.
-- Sessions: stored in PostgreSQL `sessions` table (lib/db/src/schema/auth.ts). Cookie: `sid` (httpOnly, secure, sameSite: lax).
-- User upsert on every login into `users` table.
-- Frontend: `@workspace/replit-auth-web` → `useAuth()` hook; login/logout are full-page redirects to `/api/login` and `/api/logout`.
+## Key rules
+- All user data scoped by `userId` at the DB layer (Drizzle `eq(table.userId, req.user.id)` on every query)
+- `SESSION_COOKIE` and `SESSION_TTL` constants live in `lib/auth.ts`
+- `getSessionId(req)` reads the cookie; `clearSession(res, sid)` deletes + clears it
 
-## Tenant isolation
+## Error handling (post-audit hardening)
+- `authMiddleware`: outer try/catch forwards all unexpected errors to `next(err)`
+- `refreshIfExpired`: token refresh failures are logged as WARN and return null (treated as unauthenticated)
+- `/login`, `/logout`, `/callback` (post-token-exchange), `/mobile-auth/logout`: all wrapped in try/catch
+  - `/login` failure → 500 "Authentication unavailable"
+  - `/callback` DB failure → redirect `/api/login`
+  - `/logout` OIDC failure → best-effort cookie clear + redirect home
+  - `/mobile-auth/logout` DB failure → still returns `{ success: true }` (client should treat itself as logged out)
 
-- `savedToolsTable` and `searchHistoryTable` have a `userId` FK with `onDelete: cascade`.
-- Every workspace route gates with `req.isAuthenticated()` then queries with `WHERE userId = req.user.id`.
-- The DELETE route additionally scopes by userId so users cannot delete other users' rows even with a valid row ID.
+**Why:** DB or OIDC provider failures in async route handlers that lack try/catch become unhandled promise rejections, which in older Node/Express versions hang the request or crash the process.
 
-**Why:** structural DB-level isolation — no filtering bug can ever expose cross-user data.
+## workspace.ts
+All 4 DB routes (GET/POST /workspace/saved, DELETE /workspace/saved/:id, GET /workspace/history) are wrapped in try/catch returning 500 JSON. Previously bare awaits could crash the process on DB failure.
 
-## Key files
-
-- lib/db/src/schema/auth.ts — sessions + users tables (mandatory, do not drop)
-- lib/db/src/schema/workspace.ts — savedTools + searchHistory tables
-- artifacts/api-server/src/lib/auth.ts — session CRUD + OIDC config
-- artifacts/api-server/src/middlewares/authMiddleware.ts — loads user on every request
-- artifacts/api-server/src/routes/auth.ts — /login /callback /logout /mobile-auth/*
-- artifacts/api-server/src/routes/workspace.ts — /workspace/saved + /workspace/history
-- lib/replit-auth-web/ — useAuth() hook for duck-master frontend
+## Auth gate pattern
+- Directory (App.tsx `ToolCard`): intercept click, store `sessionStorage('gdy_pending_tool')`, open LoginModal
+- Module pages (ModulePage.tsx): same pattern — `onClick` calls `handleToolClick`, stores pending URL, opens LoginModal
+- `unsaveTool` now checks `res.ok` and throws on failure so the UI does not remove the bookmark silently
+- Post-auth redirect: `useEffect` in App.tsx reads `gdy_pending_tool` from sessionStorage and calls `window.location.assign()`; `closeLogin` clears the key on dismiss

@@ -263,6 +263,9 @@ function Home() {
 
   useEffect(() => {
     if (searchResults !== null) return;
+    // Root must be the actual scrollable container, not the window — the layout
+    // uses overflow-y-auto on #main-scroll, so window.scroll* is a no-op here.
+    const root = document.getElementById('main-scroll');
     const observer = new IntersectionObserver(
       entries => {
         const visible = entries.filter(e => e.isIntersecting);
@@ -271,7 +274,7 @@ function Home() {
           setActiveCategory(visible[0].target.id.replace('module-', ''));
         }
       },
-      { rootMargin: '-20% 0px -80% 0px' }
+      { root, rootMargin: '-20% 0px -80% 0px' }
     );
     localFilteredCategories.forEach(cat => {
       const el = document.getElementById(`module-${cat.id}`);
@@ -284,10 +287,14 @@ function Home() {
     setSearch('');
     setSearchResults(null);
     setTimeout(() => {
+      const container = document.getElementById('main-scroll');
       const el = document.getElementById(`module-${id}`);
-      if (el) {
-        const y = el.getBoundingClientRect().top + window.scrollY - 100;
-        window.scrollTo({ top: y, behavior: 'smooth' });
+      if (el && container) {
+        // Compute position relative to the scrollable container, not the window.
+        const containerRect = container.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        const offset = elRect.top - containerRect.top + container.scrollTop - 100;
+        container.scrollTo({ top: offset, behavior: 'smooth' });
         setActiveCategory(id);
       }
     }, 50);
@@ -298,10 +305,13 @@ function Home() {
     setView('directory');
     setActiveCategory(categoryId);
     setTimeout(() => {
+      const container = document.getElementById('main-scroll');
       const el = document.getElementById(`module-${categoryId}`);
-      if (el) {
-        const y = el.getBoundingClientRect().top + window.scrollY - 100;
-        window.scrollTo({ top: y, behavior: 'smooth' });
+      if (el && container) {
+        const containerRect = container.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        const offset = elRect.top - containerRect.top + container.scrollTop - 100;
+        container.scrollTo({ top: offset, behavior: 'smooth' });
       }
     }, 120);
   }, []);
