@@ -1,0 +1,62 @@
+Yes. I see a very plausible DigitalOcean build failure in the current `main`.
+
+The strongest blocker is [artifacts/duck-master/vite.config.ts](https://github.com/ABBYCRM/GDY/blob/main/artifacts/duck-master/vite.config.ts):
+
+```ts
+if (!process.env.PORT) {
+  throw new Error('PORT environment variable is required...');
+}
+
+if (!process.env.BASE_PATH) {
+  throw new Error('BASE_PATH environment variable is required...');
+}
+```
+
+Those checks execute during `vite build`, not just when serving the app. Your DigitalOcean deployment configuration says the build is:
+
+```bash
+pnpm install --frozen-lockfile &&
+pnpm --filter @workspace/duck-master run build
+```
+
+but the deployment notes do not specify `PORT` or `BASE_PATH`.
+
+So DigitalOcean can reach GitHub perfectly, install the project, start Vite—and then Vite can immediately abort because `BASE_PATH`/`PORT` aren't present.
+
+There was also a lot of attempted esbuild fixing in the last few commits. Importantly, current [pnpm-workspace.yaml](https://github.com/ABBYCRM/GDY/blob/main/pnpm-workspace.yaml) already contains:
+
+```yaml
+onlyBuiltDependencies:
+  - '@swc/core'
+  - esbuild
+  - msw
+  - unrs-resolver
+```
+
+So the latest commit removing the duplicate `package.json` esbuild configuration is probably not the real remaining issue.
+
+I also confirmed:
+
+* `main` exists and has the recent Replit commits.
+* The application code is actually present on GitHub.
+* The expected DO output directory matches Vite: `artifacts/duck-master/dist/public`.
+* There is no `Dockerfile`, which is fine because the documented DO setup is a static-site build.
+* The repo's deployment documentation identifies GDY as DigitalOcean app `ddea54f3-c99c-4d63-b9c2-58fa699b6c84`.
+
+So my #1 suspect is the unconditional environment-variable validation inside `vite.config.ts`, especially `BASE_PATH`.
+
+If the DigitalOcean log contains:
+
+```text
+BASE_PATH environment variable is required but was not provided.
+```
+
+or
+
+```text
+PORT environment variable is required but was not provided.
+```
+
+that's the smoking gun.
+
+I have only diagnosed this; I haven't changed the GitHub repository. If you paste the DigitalOcean build error/log, I can pinpoint the exact failing instruction instead of stopping at the very strong code-level suspect.
