@@ -142,8 +142,12 @@ function Home() {
     if (toolUrl) sessionStorage.setItem('gdy_pending_tool', toolUrl);
     setLoginModal({ show: true, reason });
   }, []);
-  const closeLogin = useCallback(() =>
-    setLoginModal(m => ({ ...m, show: false })), []);
+  const closeLogin = useCallback(() => {
+    // If the user dismisses without signing in, discard any pending tool URL so
+    // a later unrelated sign-in does not unexpectedly navigate to it.
+    sessionStorage.removeItem('gdy_pending_tool');
+    setLoginModal(m => ({ ...m, show: false }));
+  }, []);
 
   // UI state
   const [search, setSearch] = useState('');
@@ -193,13 +197,15 @@ function Home() {
     fetchHistory().then(setHistory).catch(() => {});
   }, [isAuthenticated]);
 
-  // After sign-in: open any tool the user clicked before the OAuth redirect
+  // After sign-in: navigate to any tool the user clicked before the OAuth redirect.
+  // window.location.assign is a trusted top-level navigation — never blocked by
+  // popup blockers (unlike window.open, which has no user-gesture after a redirect).
   useEffect(() => {
     if (!isAuthenticated) return;
     const pending = sessionStorage.getItem('gdy_pending_tool');
     if (!pending) return;
     sessionStorage.removeItem('gdy_pending_tool');
-    window.open(pending, '_blank', 'noopener,noreferrer');
+    window.location.assign(pending);
   }, [isAuthenticated]);
 
   // Search — guests: instant client-side filter; authenticated: AI via backend
