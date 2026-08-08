@@ -138,8 +138,10 @@ function Home() {
     show: false,
     reason: 'generic',
   });
-  const openLogin = useCallback((reason: LoginReason) =>
-    setLoginModal({ show: true, reason }), []);
+  const openLogin = useCallback((reason: LoginReason, toolUrl?: string) => {
+    if (toolUrl) sessionStorage.setItem('gdy_pending_tool', toolUrl);
+    setLoginModal({ show: true, reason });
+  }, []);
   const closeLogin = useCallback(() =>
     setLoginModal(m => ({ ...m, show: false })), []);
 
@@ -189,6 +191,15 @@ function Home() {
     }
     fetchSaved().then(setSavedTools).catch(() => {});
     fetchHistory().then(setHistory).catch(() => {});
+  }, [isAuthenticated]);
+
+  // After sign-in: open any tool the user clicked before the OAuth redirect
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const pending = sessionStorage.getItem('gdy_pending_tool');
+    if (!pending) return;
+    sessionStorage.removeItem('gdy_pending_tool');
+    window.open(pending, '_blank', 'noopener,noreferrer');
   }, [isAuthenticated]);
 
   // Search — guests: instant client-side filter; authenticated: AI via backend
@@ -332,10 +343,20 @@ function Home() {
     const isSaving = savingUrls.has(tool.url);
     const domain = tool.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
 
+    const handleToolOpen = (e: React.MouseEvent | React.KeyboardEvent) => {
+      if (isAuthenticated) return; // let the <a> navigate normally
+      e.preventDefault();
+      openLogin('tool-open', tool.url);
+    };
+
     return (
       <div
         className="tool-card group p-5 flex flex-col relative overflow-hidden"
         style={{ '--card-color': colorVar, '--card-i': idx } as React.CSSProperties}
+        onClick={!isAuthenticated ? handleToolOpen : undefined}
+        role={!isAuthenticated ? 'button' : undefined}
+        tabIndex={!isAuthenticated ? 0 : undefined}
+        onKeyDown={!isAuthenticated ? (e) => { if (e.key === 'Enter' || e.key === ' ') handleToolOpen(e); } : undefined}
       >
         {/* Badge + save button */}
         <div className="flex items-start justify-between mb-3 gap-2">
@@ -346,7 +367,7 @@ function Home() {
             {catId}.{String(idx + 1).padStart(2, '0')}
           </span>
           <button
-            onClick={e => { e.preventDefault(); handleSave(tool, { id: catId, label: catLabel }); }}
+            onClick={e => { e.stopPropagation(); e.preventDefault(); handleSave(tool, { id: catId, label: catLabel }); }}
             className={cn(
               "shrink-0 w-7 h-7 flex items-center justify-center rounded-full transition-all",
               isSaved
@@ -368,9 +389,10 @@ function Home() {
 
         {/* Name */}
         <a
-          href={tool.url}
-          target="_blank"
+          href={isAuthenticated ? tool.url : undefined}
+          target={isAuthenticated ? '_blank' : undefined}
           rel="noopener noreferrer"
+          onClick={!isAuthenticated ? handleToolOpen : undefined}
           className="tool-name-link font-bold text-slate-800 text-sm mb-1 pr-1 line-clamp-1 group-hover:text-indigo-700 transition-colors block"
           aria-label={`${tool.name} — ${tool.url}`}
         >
