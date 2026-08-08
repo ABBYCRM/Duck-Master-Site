@@ -717,8 +717,36 @@ function Home() {
         className="flex-1 flex flex-col h-full min-w-0 grid-paper-bg relative z-10 overflow-y-auto"
       >
         {/* Hero */}
-        <div className="hero-gradient flex flex-col shrink-0 fluid-gutter pt-8 lg:pt-12 pb-5 sm:pb-8 relative shadow-lg z-10">
-          <div className="flex items-center justify-between mb-5">
+        <div
+          className="hero-gradient flex flex-col shrink-0 fluid-gutter pt-8 lg:pt-12 pb-5 sm:pb-8 relative shadow-lg z-10 overflow-hidden"
+          style={{ minHeight: 'clamp(230px, 34vw, 420px)' }}
+        >
+          {/* Duck mascot — absolutely positioned, fills right side horizontally */}
+          <button
+            onClick={() => setView('topics')}
+            aria-label="Back to module picker"
+            className="absolute inset-y-0 right-0 hover:brightness-110 transition-all duration-300 cursor-pointer"
+            style={{
+              background: 'none', border: 'none', padding: 0,
+              width: 'clamp(200px, 56%, 720px)',
+              zIndex: 0,
+            }}
+          >
+            <img
+              src="/gdy-hero.png"
+              alt=""
+              draggable={false}
+              className="w-full h-full object-contain object-right-bottom select-none"
+              style={{
+                maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.45) 22%, black 48%)',
+                WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.45) 22%, black 48%)',
+                filter: 'drop-shadow(0 0 48px rgba(139,92,246,0.85)) drop-shadow(0 0 16px rgba(99,102,241,0.5))',
+              }}
+            />
+          </button>
+
+          {/* Top controls row */}
+          <div className="flex items-center justify-between mb-5 relative" style={{ zIndex: 1 }}>
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="lg:hidden p-2 -ml-2 text-white/80 hover:text-white rounded-md transition-colors"
@@ -769,53 +797,32 @@ function Home() {
             </div>
           </div>
 
-          {/* Hero row: text left, duck right */}
-          <div className="flex items-end justify-between gap-4 mb-0">
-            <div className="min-w-0">
-              <button
-                onClick={() => setView('topics')}
-                className="fluid-heading font-extrabold tracking-tight mb-2 block text-left hover:opacity-80 transition-opacity cursor-pointer group"
-                id="main-content"
-                aria-label="Back to module picker"
-                title="Back to module picker"
-              >
-                <span className="gradient-text">GDY</span>
-                <span className="ml-2 text-white/30 text-base align-middle opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden>↩</span>
-              </button>
-
-              <p className="text-white/70 text-sm sm:text-base mb-4 sm:mb-5 font-medium max-w-xl">
-                <span className="metric font-bold text-white">{totalTools}</span>
-                {' tools · '}
-                <span className="metric font-bold text-white">{CATEGORIES.length}</span>
-                {' modules'}
-                {isAuthenticated && savedTools.length > 0 && (
-                  <>{' · '}<span className="metric font-bold text-indigo-300">{savedTools.length}</span>{' saved'}</>
-                )}
-              </p>
-            </div>
-
-            {/* Duck mascot — click to go back to the module picker */}
+          {/* Hero text — left side, rendered above the duck */}
+          <div className="relative min-w-0" style={{ zIndex: 1, maxWidth: 'min(58%, 460px)' }}>
             <button
               onClick={() => setView('topics')}
+              className="fluid-heading font-extrabold tracking-tight mb-2 block text-left hover:opacity-80 transition-opacity cursor-pointer group"
+              id="main-content"
               aria-label="Back to module picker"
-              className="shrink-0 hover:scale-105 transition-transform duration-200 cursor-pointer"
-              style={{ marginBottom: '-1rem', background: 'none', border: 'none', padding: 0 }}
+              title="Back to module picker"
             >
-              <img
-                src="/gdy-hero.png"
-                alt="Back to module picker"
-                draggable={false}
-                className="object-contain drop-shadow-2xl select-none"
-                style={{
-                  height: 'clamp(80px, 14vw, 160px)',
-                  filter: 'drop-shadow(0 0 20px rgba(139,92,246,0.55))',
-                }}
-              />
+              <span className="gradient-text">GDY</span>
+              <span className="ml-2 text-white/30 text-base align-middle opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden>↩</span>
             </button>
+
+            <p className="text-white/70 text-sm sm:text-base mb-4 sm:mb-5 font-medium">
+              <span className="metric font-bold text-white">{totalTools}</span>
+              {' tools · '}
+              <span className="metric font-bold text-white">{CATEGORIES.length}</span>
+              {' modules'}
+              {isAuthenticated && savedTools.length > 0 && (
+                <>{' · '}<span className="metric font-bold text-indigo-300">{savedTools.length}</span>{' saved'}</>
+              )}
+            </p>
           </div>
 
           {/* Category chip strip — wrapped for right-edge fade hint */}
-          <div className="chip-strip-wrap">
+          <div className="chip-strip-wrap relative" style={{ zIndex: 1 }}>
           <div className="scroll-snap-x gap-2 pb-2" role="list" aria-label="Jump to module">
             {categoriesWithTools.map(cat => (
               <button
@@ -834,12 +841,13 @@ function Home() {
           {/* Back to carousel CTA */}
           <button
             onClick={() => setView('topics')}
-            className="mt-4 sm:mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95"
+            className="mt-4 sm:mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 relative"
             style={{
               background: 'rgba(255,255,255,0.12)',
               border: '1px solid rgba(255,255,255,0.25)',
               color: 'rgba(255,255,255,0.85)',
               backdropFilter: 'blur(8px)',
+              zIndex: 1,
             }}
           >
             <LayoutGrid className="w-3.5 h-3.5" />
