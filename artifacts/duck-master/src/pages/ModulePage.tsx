@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Link } from 'wouter';
 import { useParams } from 'wouter';
+import { useAuth } from '@workspace/replit-auth-web';
 import { PageLayout } from '../components/PageLayout';
 import { SeoHead } from '../components/SeoHead';
+import { LoginModal } from '../components/LoginModal';
 import { getModuleBySlug, MODULE_SLUGS } from '../data/modules-content';
 import { CATEGORIES } from '../data/tools';
 import { ExternalLink, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -29,6 +32,16 @@ export function ModulePage() {
   const params = useParams<{ id: string }>();
   const slug = params.id ?? '';
   const module = getModuleBySlug(slug);
+  const { isAuthenticated, login } = useAuth();
+  const [loginOpen, setLoginOpen] = useState(false);
+
+  function handleToolClick(e: React.MouseEvent<HTMLAnchorElement>, url: string) {
+    if (isAuthenticated) return; // let the browser follow the link normally
+    e.preventDefault();
+    // Store the pending URL so the post-auth effect in App.tsx can open it
+    sessionStorage.setItem('gdy_pending_tool', url);
+    setLoginOpen(true);
+  }
 
   if (!module) {
     return (
@@ -128,6 +141,7 @@ export function ModulePage() {
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => handleToolClick(e, url)}
                     className="group flex flex-col p-3 sm:p-4 rounded-xl bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all active:scale-95"
                     style={{ '--card-i': idx } as React.CSSProperties}
                   >
@@ -222,6 +236,16 @@ export function ModulePage() {
           ) : <div />}
         </div>
       </div>
+
+      <LoginModal
+        open={loginOpen}
+        reason="tool-open"
+        onLogin={login}
+        onClose={() => {
+          setLoginOpen(false);
+          sessionStorage.removeItem('gdy_pending_tool');
+        }}
+      />
     </PageLayout>
   );
 }

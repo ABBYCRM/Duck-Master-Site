@@ -14,22 +14,27 @@ router.get("/workspace/saved", async (req: Request, res: Response) => {
     return;
   }
 
-  const saved = await db
-    .select()
-    .from(savedToolsTable)
-    .where(eq(savedToolsTable.userId, req.user.id))
-    .orderBy(desc(savedToolsTable.savedAt));
+  try {
+    const saved = await db
+      .select()
+      .from(savedToolsTable)
+      .where(eq(savedToolsTable.userId, req.user.id))
+      .orderBy(desc(savedToolsTable.savedAt));
 
-  res.json({
-    saved: saved.map((row) => ({
-      id: row.id,
-      toolUrl: row.toolUrl,
-      toolName: row.toolName,
-      categoryId: row.categoryId,
-      categoryLabel: row.categoryLabel,
-      savedAt: row.savedAt.toISOString(),
-    })),
-  });
+    res.json({
+      saved: saved.map((row) => ({
+        id: row.id,
+        toolUrl: row.toolUrl,
+        toolName: row.toolName,
+        categoryId: row.categoryId,
+        categoryLabel: row.categoryLabel,
+        savedAt: row.savedAt.toISOString(),
+      })),
+    });
+  } catch (err) {
+    console.error("[workspace] GET /saved error:", err);
+    res.status(500).json({ error: "Failed to load saved tools" });
+  }
 });
 
 // ── POST /workspace/saved — save a tool (idempotent) ─────────────────────
@@ -58,29 +63,34 @@ router.post("/workspace/saved", workspaceMutationLimiter, async (req: Request, r
     return;
   }
 
-  const [row] = await db
-    .insert(savedToolsTable)
-    .values({
-      userId: req.user.id,
-      toolUrl: parsedUrl.href.slice(0, 2048),
-      toolName: sanitizeString(String(toolName), 512),
-      categoryId: sanitizeString(String(categoryId), 64),
-      categoryLabel: sanitizeString(String(categoryLabel), 256),
-    })
-    .onConflictDoUpdate({
-      target: [savedToolsTable.userId, savedToolsTable.toolUrl],
-      set: { toolName: String(toolName).slice(0, 512) },
-    })
-    .returning();
+  try {
+    const [row] = await db
+      .insert(savedToolsTable)
+      .values({
+        userId: req.user.id,
+        toolUrl: parsedUrl.href.slice(0, 2048),
+        toolName: sanitizeString(String(toolName), 512),
+        categoryId: sanitizeString(String(categoryId), 64),
+        categoryLabel: sanitizeString(String(categoryLabel), 256),
+      })
+      .onConflictDoUpdate({
+        target: [savedToolsTable.userId, savedToolsTable.toolUrl],
+        set: { toolName: String(toolName).slice(0, 512) },
+      })
+      .returning();
 
-  res.json({
-    id: row.id,
-    toolUrl: row.toolUrl,
-    toolName: row.toolName,
-    categoryId: row.categoryId,
-    categoryLabel: row.categoryLabel,
-    savedAt: row.savedAt.toISOString(),
-  });
+    res.json({
+      id: row.id,
+      toolUrl: row.toolUrl,
+      toolName: row.toolName,
+      categoryId: row.categoryId,
+      categoryLabel: row.categoryLabel,
+      savedAt: row.savedAt.toISOString(),
+    });
+  } catch (err) {
+    console.error("[workspace] POST /saved error:", err);
+    res.status(500).json({ error: "Failed to save tool" });
+  }
 });
 
 // ── DELETE /workspace/saved/:toolId — remove a saved tool for this user ───
@@ -97,17 +107,22 @@ router.delete("/workspace/saved/:toolId", workspaceMutationLimiter, async (req: 
     return;
   }
 
-  // The AND ensures a user can only delete their own rows
-  await db
-    .delete(savedToolsTable)
-    .where(
-      and(
-        eq(savedToolsTable.id, toolId),
-        eq(savedToolsTable.userId, req.user.id),
-      ),
-    );
+  try {
+    // The AND ensures a user can only delete their own rows
+    await db
+      .delete(savedToolsTable)
+      .where(
+        and(
+          eq(savedToolsTable.id, toolId),
+          eq(savedToolsTable.userId, req.user.id),
+        ),
+      );
 
-  res.json({ success: true });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[workspace] DELETE /saved error:", err);
+    res.status(500).json({ error: "Failed to delete saved tool" });
+  }
 });
 
 // ── GET /workspace/history — search history for this user only ────────────
@@ -118,22 +133,27 @@ router.get("/workspace/history", async (req: Request, res: Response) => {
     return;
   }
 
-  const history = await db
-    .select()
-    .from(searchHistoryTable)
-    .where(eq(searchHistoryTable.userId, req.user.id))
-    .orderBy(desc(searchHistoryTable.searchedAt))
-    .limit(50);
+  try {
+    const history = await db
+      .select()
+      .from(searchHistoryTable)
+      .where(eq(searchHistoryTable.userId, req.user.id))
+      .orderBy(desc(searchHistoryTable.searchedAt))
+      .limit(50);
 
-  res.json({
-    history: history.map((row) => ({
-      id: row.id,
-      query: row.query,
-      resultCount: row.resultCount,
-      aiPowered: row.aiPowered,
-      searchedAt: row.searchedAt.toISOString(),
-    })),
-  });
+    res.json({
+      history: history.map((row) => ({
+        id: row.id,
+        query: row.query,
+        resultCount: row.resultCount,
+        aiPowered: row.aiPowered,
+        searchedAt: row.searchedAt.toISOString(),
+      })),
+    });
+  } catch (err) {
+    console.error("[workspace] GET /history error:", err);
+    res.status(500).json({ error: "Failed to load history" });
+  }
 });
 
 export default router;

@@ -4,10 +4,12 @@
     "incremental": true,
     "tsBuildInfoFile": ".tsbuildinfo",
     "outDir": "dist",
-    "rootDir": "src",
+    // rootDir intentionally omitted: esbuild (not tsc) produces the output, so
+    // tsc is type-check-only and the rootDir constraint would reject the valid
+    // cross-artifact import in tools-data.ts that esbuild resolves correctly.
     "types": ["node"]
   },
-  "include": ["src"],
+  "include": ["src", "../../artifacts/duck-master/src/data/tools.ts"],
   "references": [
     {
       "path": "../../lib/db"

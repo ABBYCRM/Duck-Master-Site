@@ -8,7 +8,10 @@ function userOrIpKey(req: Request): string {
   if (req.isAuthenticated?.() && req.user?.id) {
     return `u:${req.user.id}`;
   }
-  return `ip:${ipKeyGenerator(req)}`;
+  // Cast required: express-rate-limit's ipKeyGenerator uses its own bundled
+  // Request type that is structurally identical but not assignable to Express's.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return `ip:${ipKeyGenerator(req as any)}`;
 }
 
 function makeMessage(windowMs: number, max: number) {

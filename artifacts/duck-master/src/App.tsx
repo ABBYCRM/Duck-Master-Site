@@ -115,7 +115,8 @@ async function saveTool(tool: Omit<SavedTool, 'id' | 'savedAt'>): Promise<SavedT
 }
 
 async function unsaveTool(id: number): Promise<void> {
-  await apiFetch(`/workspace/saved/${id}`, { method: 'DELETE' });
+  const res = await apiFetch(`/workspace/saved/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`Failed to unsave tool: ${res.status}`);
 }
 
 async function fetchHistory(): Promise<SearchHistoryItem[]> {

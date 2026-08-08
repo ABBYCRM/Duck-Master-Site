@@ -46,7 +46,10 @@ async function refreshIfExpired(
       : session.expires_at;
     await updateSession(sid, session);
     return session;
-  } catch {
+  } catch (err) {
+    // Refresh failed (expired, revoked, or provider unreachable) — treat as
+    // unauthenticated so the user is prompted to sign in again.
+    console.warn('[auth] token refresh failed, clearing session:', err instanceof Error ? err.message : String(err));
     return null;
   }
 }
@@ -56,30 +59,37 @@ export async function authMiddleware(
   res: Response,
   next: NextFunction,
 ) {
-  req.isAuthenticated = function (this: Request) {
-    return this.user != null;
-  } as Request['isAuthenticated'];
+  // Outer try/catch ensures DB or OIDC failures are forwarded to Express error
+  // handlers rather than becoming unhandled promise rejections.
+  try {
+    req.isAuthenticated = function (this: Request) {
+      return this.user != null;
+    } as Request['isAuthenticated'];
 
-  const sid = getSessionId(req);
-  if (!sid) {
+    const sid = getSessionId(req);
+    if (!sid) {
+      next();
+      return;
+    }
+
+    const session = await getSession(sid);
+    if (!session?.user?.id) {
+      await clearSession(res, sid);
+      next();
+      return;
+    }
+
+    const refreshed = await refreshIfExpired(sid, session);
+    if (!refreshed) {
+      await clearSession(res, sid);
+      next();
+      return;
+    }
+
+    req.user = refreshed.user;
     next();
-    return;
+  } catch (err) {
+    console.error('[auth] authMiddleware unexpected error:', err);
+    next(err);
   }
-
-  const session = await getSession(sid);
-  if (!session?.user?.id) {
-    await clearSession(res, sid);
-    next();
-    return;
-  }
-
-  const refreshed = await refreshIfExpired(sid, session);
-  if (!refreshed) {
-    await clearSession(res, sid);
-    next();
-    return;
-  }
-
-  req.user = refreshed.user;
-  next();
 }

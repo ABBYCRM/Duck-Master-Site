@@ -57,14 +57,20 @@ export function ContactPage() {
 
         {/* Contact note */}
         <div className="p-6 rounded-2xl bg-indigo-50 border border-indigo-100 text-center">
-          <p className="text-slate-700 leading-relaxed mb-2">
-            <strong>Duck Master is currently in active development.</strong> A dedicated contact form
-            and community feedback system are coming soon.
+          <p className="text-slate-700 leading-relaxed mb-3">
+            The fastest way to reach us is via{' '}
+            <strong>GitHub Issues</strong>. Open a ticket to suggest a tool, report a broken link,
+            or share feedback — we review every submission.
           </p>
-          <p className="text-sm text-slate-500">
-            In the meantime, you can reach the Duck Master team through the platform where this
-            directory is hosted. Sign in to your account to access user feedback features.
-          </p>
+          <a
+            href="https://github.com/ABBYCRM/Duck-Master-Site/issues/new"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors shadow-sm"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Open an Issue on GitHub
+          </a>
         </div>
 
         {/* Disclaimer */}

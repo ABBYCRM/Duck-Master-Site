@@ -94,9 +94,10 @@ Rank most relevant first. Maximum 20 results.`;
 
   const userPrompt = `Query: "${query}"\n\nTools:\n${toolList}`;
 
-  let res: Response;
+  // Use a local name that does not clash with the Express `Response` import.
+  let fetchRes: globalThis.Response;
   try {
-    res = await fetch(
+    fetchRes = await fetch(
       "https://integrate.api.nvidia.com/v1/chat/completions",
       {
         method: "POST",
@@ -117,21 +118,21 @@ Rank most relevant first. Maximum 20 results.`;
         // 30-second timeout so a stalled NVIDIA call doesn't block the route
         signal: AbortSignal.timeout(30_000),
       },
-    ) as unknown as Response;
+    );
   } catch (err) {
     // Network / timeout errors — never include the API key in the message
     throw new Error(`NVIDIA request failed: ${redactSecrets(String(err))}`);
   }
 
-  if (!res.ok) {
+  if (!fetchRes.ok) {
     // Read body but redact before throwing — status codes alone are safe to log
-    const text = await (res as unknown as globalThis.Response).text().catch(() => "");
+    const text = await fetchRes.text().catch(() => "");
     throw new Error(
-      `NVIDIA API error ${(res as unknown as globalThis.Response).status}: ${redactSecrets(text.slice(0, 120))}`,
+      `NVIDIA API error ${fetchRes.status}: ${redactSecrets(text.slice(0, 120))}`,
     );
   }
 
-  const data = (await (res as unknown as globalThis.Response).json()) as {
+  const data = (await fetchRes.json()) as {
     choices: Array<{ message: { content: string } }>;
   };
   const content = data.choices?.[0]?.message?.content ?? "[]";
