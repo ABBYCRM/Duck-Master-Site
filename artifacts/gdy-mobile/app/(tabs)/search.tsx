@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -17,9 +17,18 @@ import { useColors } from '@/hooks/useColors';
 import { CATEGORY_COLORS } from '@/constants/colors';
 import { getAllTools, filterTools, type Tool } from '@/constants/tools';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSaveTool, useRemoveSavedTool, useGetSavedTools } from '@workspace/api-client-react';
+import {
+  useSaveTool,
+  useRemoveSavedTool,
+  useGetSavedTools,
+  useAiSearch,
+} from '@workspace/api-client-react';
 
 const ALL_TOOLS = getAllTools();
+// Build a quick lookup map for enriching AI results with any extra local fields
+const TOOL_BY_URL = new Map<string, Tool>(ALL_TOOLS.map((t) => [t.url, t]));
+
+type DisplayTool = Tool & { relevance?: string | null; aiPowered?: boolean };
 
 function ToolItem({
   tool,
@@ -28,7 +37,7 @@ function ToolItem({
   onUnsave,
   isAuthenticated,
 }: {
-  tool: Tool;
+  tool: DisplayTool;
   savedIds: Set<string>;
   onSave: (t: Tool) => void;
   onUnsave: (url: string) => void;
@@ -49,12 +58,28 @@ function ToolItem({
         onPress={() => WebBrowser.openBrowserAsync(tool.url)}
         testID={`tool-row-${tool.url}`}
       >
-        <Text style={[styles.toolName, { color: colors.foreground }]} numberOfLines={1}>
-          {tool.name}
-        </Text>
+        <View style={styles.toolNameRow}>
+          <Text style={[styles.toolName, { color: colors.foreground }]} numberOfLines={1}>
+            {tool.name}
+          </Text>
+          {tool.aiPowered && (
+            <View style={[styles.aiBadge, { backgroundColor: colors.primary + '20' }]}>
+              <Feather name="zap" size={9} color={colors.primary} />
+              <Text style={[styles.aiBadgeText, { color: colors.primary }]}>AI</Text>
+            </View>
+          )}
+        </View>
         <Text style={[styles.toolUrl, { color: colors.mutedForeground }]} numberOfLines={1}>
           {tool.url.replace(/^https?:\/\//, '')}
         </Text>
+        {tool.relevance ? (
+          <Text
+            style={[styles.relevanceText, { color: colors.mutedForeground }]}
+            numberOfLines={2}
+          >
+            {tool.relevance}
+          </Text>
+        ) : null}
         <View style={[styles.catBadge, { backgroundColor: accent + '20' }]}>
           <Text style={[styles.catBadgeText, { color: accent }]} numberOfLines={1}>
             {tool.categoryLabel}
@@ -89,6 +114,13 @@ export default function SearchScreen() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // AI search state
+  const [aiResults, setAiResults] = useState<DisplayTool[] | null>(null);
+  const [isAiPowered, setIsAiPowered] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  // Track the query that the current aiResults correspond to
+  const lastAiQueryRef = useRef('');
+
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
   const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
 
@@ -98,6 +130,7 @@ export default function SearchScreen() {
   });
   const saveToolMutation = useSaveTool();
   const removeToolMutation = useRemoveSavedTool();
+  const aiSearchMutation = useAiSearch();
 
   const savedUrls = useMemo(
     () => new Set((savedData?.saved ?? []).map((s) => s.toolUrl)),
@@ -112,15 +145,65 @@ export default function SearchScreen() {
     return m;
   }, [savedData]);
 
-  const results = useMemo(
+  // Local (offline) filter — always computed as fallback
+  const localResults = useMemo<DisplayTool[]>(
     () => filterTools(debouncedQuery, ALL_TOOLS),
     [debouncedQuery]
   );
 
+  // Run AI search whenever debouncedQuery changes
+  useEffect(() => {
+    const q = debouncedQuery.trim();
+    if (!q) {
+      setAiResults(null);
+      setIsAiPowered(false);
+      setIsAiLoading(false);
+      lastAiQueryRef.current = '';
+      return;
+    }
+
+    lastAiQueryRef.current = q;
+    setIsAiLoading(true);
+
+    aiSearchMutation.mutateAsync({ data: { query: q } })
+      .then((resp) => {
+        // Ignore stale responses if the query changed while in-flight
+        if (lastAiQueryRef.current !== q) return;
+
+        const enriched = resp.results.reduce<DisplayTool[]>((acc, item) => {
+            const local = TOOL_BY_URL.get(item.url);
+            if (local) {
+              acc.push({
+                ...local,
+                relevance: item.relevance ?? undefined,
+                aiPowered: resp.aiPowered,
+              });
+            }
+            return acc;
+          }, []);
+
+        setAiResults(enriched);
+        setIsAiPowered(resp.aiPowered);
+      })
+      .catch(() => {
+        // Network error or server error — fall back to local results silently
+        if (lastAiQueryRef.current !== q) return;
+        setAiResults(null);
+        setIsAiPowered(false);
+      })
+      .finally(() => {
+        if (lastAiQueryRef.current === q) setIsAiLoading(false);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedQuery]);
+
+  const results: DisplayTool[] = aiResults ?? localResults;
+  const isEmpty = debouncedQuery.length > 0 && results.length === 0 && !isAiLoading;
+
   const handleQueryChange = useCallback((text: string) => {
     setQuery(text);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => setDebouncedQuery(text), 300);
+    debounceRef.current = setTimeout(() => setDebouncedQuery(text), 400);
   }, []);
 
   const handleSave = useCallback(
@@ -147,8 +230,6 @@ export default function SearchScreen() {
     },
     [removeToolMutation, savedIdMap, refetchSaved]
   );
-
-  const isEmpty = debouncedQuery.length > 0 && results.length === 0;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -177,11 +258,13 @@ export default function SearchScreen() {
           clearButtonMode="while-editing"
           testID="search-input"
         />
-        {query.length > 0 && Platform.OS !== 'ios' && (
+        {isAiLoading ? (
+          <ActivityIndicator size="small" color={colors.primary} />
+        ) : query.length > 0 && Platform.OS !== 'ios' ? (
           <Pressable onPress={() => handleQueryChange('')} hitSlop={8}>
             <Feather name="x" size={16} color={colors.mutedForeground} />
           </Pressable>
-        )}
+        ) : null}
       </View>
 
       {/* Results */}
@@ -189,10 +272,17 @@ export default function SearchScreen() {
         <View style={styles.placeholder}>
           <Feather name="search" size={40} color={colors.border} />
           <Text style={[styles.placeholderTitle, { color: colors.mutedForeground }]}>
-            Search tools offline
+            Search tools
           </Text>
           <Text style={[styles.placeholderSub, { color: colors.mutedForeground }]}>
             Type a tool name, URL, or category
+          </Text>
+        </View>
+      ) : isAiLoading && results.length === 0 ? (
+        <View style={styles.placeholder}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.placeholderSub, { color: colors.mutedForeground }]}>
+            Searching…
           </Text>
         </View>
       ) : isEmpty ? (
@@ -226,9 +316,23 @@ export default function SearchScreen() {
           }}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            <Text style={[styles.resultCount, { color: colors.mutedForeground }]}>
-              {results.length} result{results.length !== 1 ? 's' : ''} — offline search
-            </Text>
+            <View style={styles.resultHeader}>
+              <Text style={[styles.resultCount, { color: colors.mutedForeground }]}>
+                {results.length} result{results.length !== 1 ? 's' : ''}
+              </Text>
+              {isAiPowered ? (
+                <View style={[styles.aiPoweredBadge, { backgroundColor: colors.primary + '18' }]}>
+                  <Feather name="zap" size={10} color={colors.primary} />
+                  <Text style={[styles.aiPoweredText, { color: colors.primary }]}>
+                    AI-powered
+                  </Text>
+                </View>
+              ) : (
+                <Text style={[styles.resultCount, { color: colors.mutedForeground }]}>
+                  offline search
+                </Text>
+              )}
+            </View>
           }
           scrollEnabled={results.length > 0}
           keyboardShouldPersistTaps="handled"
@@ -279,10 +383,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 40,
   },
+  resultHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   resultCount: {
     fontSize: 12,
     fontFamily: 'Inter_400Regular',
-    marginBottom: 4,
+  },
+  aiPoweredBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  aiPoweredText: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    fontWeight: '500' as const,
   },
   toolItem: {
     flexDirection: 'row',
@@ -300,14 +422,40 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 3,
   },
+  toolNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   toolName: {
     fontSize: 14,
     fontWeight: '600' as const,
     fontFamily: 'Inter_600SemiBold',
+    flexShrink: 1,
+  },
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  aiBadgeText: {
+    fontSize: 9,
+    fontFamily: 'Inter_600SemiBold',
+    fontWeight: '600' as const,
+    letterSpacing: 0.2,
   },
   toolUrl: {
     fontSize: 12,
     fontFamily: 'Inter_400Regular',
+  },
+  relevanceText: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 16,
+    marginTop: 2,
   },
   catBadge: {
     alignSelf: 'flex-start',
