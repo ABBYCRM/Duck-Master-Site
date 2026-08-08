@@ -26,6 +26,18 @@ const AUTH_TOKEN_KEY = '@gdy/auth_token';
 // Module-level token ref — registered once via setAuthTokenGetter
 const _tokenRef: { current: string | null } = { current: null };
 
+// Module-level 401 handler ref — set by AuthProvider on mount
+const _on401Ref: { current: (() => void) | null } = { current: null };
+
+/**
+ * Called by the QueryCache onError handler in _layout.tsx when any request
+ * returns HTTP 401.  Clears the stored token and marks the session as expired
+ * so the UI can show a friendly "Session expired" message.
+ */
+export function onUnauthorized(): void {
+  _on401Ref.current?.();
+}
+
 /** Called by setAuthTokenGetter in _layout.tsx to supply the bearer token */
 export function getStoredAuthToken(): string | null {
   return _tokenRef.current;
@@ -37,6 +49,7 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   isSigningIn: boolean;
+  sessionExpired: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -47,6 +60,7 @@ const AuthContext = createContext<AuthContextValue>({
   isLoading: true,
   isAuthenticated: false,
   isSigningIn: false,
+  sessionExpired: false,
   login: async () => {},
   logout: async () => {},
 });
@@ -59,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   const exchangeMutation = useExchangeMobileAuthorizationCode();
   const logoutMutation = useLogoutMobileSession();
@@ -113,6 +128,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
+  // Register the 401 handler so the QueryCache can call it
+  useEffect(() => {
+    _on401Ref.current = () => {
+      applyToken(null);
+      setSessionExpired(true);
+    };
+    return () => {
+      _on401Ref.current = null;
+    };
+  }, [applyToken]);
+
   // Handle auth response from expo-auth-session
   useEffect(() => {
     if (response?.type === 'success' && request?.codeVerifier) {
@@ -128,6 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         })
         .then(async (result) => {
+          setSessionExpired(false);
           await applyToken(result.token);
           await refetchUser();
         })
@@ -171,6 +198,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated: !!token,
         isSigningIn,
+        sessionExpired,
         login,
         logout,
       }}

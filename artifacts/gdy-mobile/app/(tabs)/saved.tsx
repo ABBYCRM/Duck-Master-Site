@@ -69,16 +69,18 @@ function SavedToolRow({
 
 function LoginPrompt() {
   const colors = useColors();
-  const { login, isSigningIn } = useAuth();
+  const { login, isSigningIn, sessionExpired } = useAuth();
 
   return (
     <View style={styles.loginPrompt}>
-      <Feather name="lock" size={48} color={colors.border} />
+      <Feather name={sessionExpired ? 'alert-circle' : 'lock'} size={48} color={sessionExpired ? colors.destructive : colors.border} />
       <Text style={[styles.loginTitle, { color: colors.foreground }]}>
-        Sign in to save tools
+        {sessionExpired ? 'Session expired' : 'Sign in to save tools'}
       </Text>
       <Text style={[styles.loginSub, { color: colors.mutedForeground }]}>
-        Save your favourite tools and sync them across devices with your Replit account.
+        {sessionExpired
+          ? 'Your session has expired. Please sign in again to access your saved tools.'
+          : 'Save your favourite tools and sync them across devices with your Replit account.'}
       </Text>
       <Pressable
         style={({ pressed }) => [

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -14,7 +14,7 @@ import {
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { setBaseUrl, setAuthTokenGetter } from '@workspace/api-client-react';
-import { AuthProvider, getStoredAuthToken } from '@/contexts/AuthContext';
+import { AuthProvider, getStoredAuthToken, onUnauthorized } from '@/contexts/AuthContext';
 
 // Configure API client — must run before any component mounts
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
@@ -24,10 +24,25 @@ setAuthTokenGetter(() => getStoredAuthToken());
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError(error) {
+      // Automatically clear the stored session when any request returns 401
+      // so the user isn't silently stuck with an invalid token.
+      const status = (error as { status?: number })?.status;
+      if (status === 401) {
+        onUnauthorized();
+      }
+    },
+  }),
   defaultOptions: {
     queries: {
       staleTime: 30_000,
-      retry: 1,
+      retry: (failureCount, error) => {
+        // Never retry 401s — the token is invalid, not a transient failure.
+        const status = (error as { status?: number })?.status;
+        if (status === 401) return false;
+        return failureCount < 1;
+      },
     },
   },
 });
