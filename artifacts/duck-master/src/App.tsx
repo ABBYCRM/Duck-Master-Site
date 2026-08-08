@@ -721,21 +721,16 @@ function Home() {
           className="hero-gradient flex flex-col shrink-0 fluid-gutter pt-8 lg:pt-12 pb-5 sm:pb-8 relative shadow-lg z-10 overflow-hidden"
           style={{ minHeight: 'clamp(230px, 34vw, 420px)' }}
         >
-          {/* Background: duck image rendered wide/cover — horizontal fill, not blurred */}
+          {/* Background: duck image screened in — dark PNG background vanishes,
+              only the neon glow bleeds across the full hero width */}
           <div className="absolute inset-0 pointer-events-none" aria-hidden>
             <img
               src="/gdy-hero.png"
               alt=""
               className="w-full h-full object-cover object-center"
-              style={{ opacity: 0.45 }}
-            />
-            {/* Left-side gradient so GDY text stays readable */}
-            <div
-              className="absolute inset-0"
               style={{
-                background:
-                  'linear-gradient(to right, rgba(10,18,70,0.82) 0%, rgba(10,18,70,0.45) 40%, rgba(10,18,70,0.25) 100%),' +
-                  'linear-gradient(to bottom, rgba(10,18,70,0.35) 0%, transparent 50%, rgba(10,18,70,0.55) 100%)',
+                mixBlendMode: 'screen',
+                opacity: 0.85,
               }}
             />
           </div>
@@ -841,21 +836,6 @@ function Home() {
             </div>
           </div>
 
-          {/* Back to module picker — restored */}
-          <button
-            onClick={() => setView('topics')}
-            className="mt-4 sm:mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 relative"
-            style={{
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.25)',
-              color: 'rgba(255,255,255,0.85)',
-              backdropFilter: 'blur(8px)',
-              zIndex: 1,
-            }}
-          >
-            <LayoutGrid className="w-3.5 h-3.5" />
-            ← Back to module picker
-          </button>
         </div>
 
         {/* Sticky search bar */}
