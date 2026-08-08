@@ -721,30 +721,26 @@ function Home() {
           className="hero-gradient flex flex-col shrink-0 fluid-gutter pt-8 lg:pt-12 pb-5 sm:pb-8 relative shadow-lg z-10 overflow-hidden"
           style={{ minHeight: 'clamp(230px, 34vw, 420px)' }}
         >
-          {/* Layer 0 — blurred duck: fills entire hero as background continuation */}
+          {/* Background: duck image rendered wide/cover — horizontal fill, not blurred */}
           <div className="absolute inset-0 pointer-events-none" aria-hidden>
             <img
               src="/gdy-hero.png"
               alt=""
               className="w-full h-full object-cover object-center"
-              style={{
-                filter: 'blur(32px) brightness(0.28) saturate(0.65)',
-                transform: 'scale(1.18)',
-              }}
+              style={{ opacity: 0.45 }}
             />
-            {/* Gradient vignette over the blur so hero gradient still reads */}
+            {/* Left-side gradient so GDY text stays readable */}
             <div
               className="absolute inset-0"
               style={{
                 background:
-                  'radial-gradient(ellipse at 20% 60%, rgb(99 102 241 / .30), transparent 55%),' +
-                  'radial-gradient(ellipse at 80% 20%, rgb(139 92 246 / .20), transparent 50%),' +
-                  'linear-gradient(to bottom, rgba(10,18,60,0.45) 0%, rgba(20,8,50,0.20) 50%, rgba(10,18,60,0.55) 100%)',
+                  'linear-gradient(to right, rgba(10,18,70,0.82) 0%, rgba(10,18,70,0.45) 40%, rgba(10,18,70,0.25) 100%),' +
+                  'linear-gradient(to bottom, rgba(10,18,70,0.35) 0%, transparent 50%, rgba(10,18,70,0.55) 100%)',
               }}
             />
           </div>
 
-          {/* Layer 1 — centered crisp duck */}
+          {/* Centered crisp duck — glowing focal point on top of the wide background */}
           <div
             className="absolute inset-0 flex items-center justify-center pointer-events-none"
             aria-hidden
@@ -761,12 +757,12 @@ function Home() {
                 filter:
                   'drop-shadow(0 0 70px rgba(139,92,246,0.95))' +
                   ' drop-shadow(0 0 28px rgba(99,102,241,0.65))',
-                opacity: 0.93,
+                opacity: 0.95,
               }}
             />
           </div>
 
-          {/* Top controls — hamburger (mobile) + user pill only */}
+          {/* Top controls — hamburger (mobile) + user pill only; Choose topic removed */}
           <div className="flex items-center justify-between mb-5 relative" style={{ zIndex: 1 }}>
             <button
               onClick={() => setIsMobileMenuOpen(true)}
@@ -814,8 +810,10 @@ function Home() {
               <span className="ml-2 text-white/30 text-base align-middle opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden>↩</span>
             </button>
 
-            <p className="text-white/70 text-sm sm:text-base mb-4 sm:mb-5 font-medium"
-               style={{ textShadow: '0 1px 8px rgba(0,0,0,0.7)' }}>
+            <p
+              className="text-white/70 text-sm sm:text-base mb-4 sm:mb-5 font-medium"
+              style={{ textShadow: '0 1px 10px rgba(0,0,0,0.9)' }}
+            >
               <span className="metric font-bold text-white">{totalTools}</span>
               {' tools · '}
               <span className="metric font-bold text-white">{CATEGORIES.length}</span>
@@ -842,6 +840,22 @@ function Home() {
               ))}
             </div>
           </div>
+
+          {/* Back to module picker — restored */}
+          <button
+            onClick={() => setView('topics')}
+            className="mt-4 sm:mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 relative"
+            style={{
+              background: 'rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              color: 'rgba(255,255,255,0.85)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 1,
+            }}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            ← Back to module picker
+          </button>
         </div>
 
         {/* Sticky search bar */}
