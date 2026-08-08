@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Linking,
   Platform,
   Pressable,
   RefreshControl,
@@ -10,6 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -40,7 +40,7 @@ function SavedToolRow({
       <View style={[styles.rowAccent, { backgroundColor: accent }]} />
       <Pressable
         style={styles.rowContent}
-        onPress={() => Linking.openURL(item.toolUrl)}
+        onPress={() => WebBrowser.openBrowserAsync(item.toolUrl)}
       >
         <Text style={[styles.toolName, { color: colors.foreground }]} numberOfLines={1}>
           {item.toolName}

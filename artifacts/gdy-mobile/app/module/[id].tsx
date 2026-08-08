@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import {
   FlatList,
-  Linking,
   Platform,
   Pressable,
   StyleSheet,
@@ -11,6 +10,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import * as WebBrowser from 'expo-web-browser';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { CATEGORY_COLORS } from '@/constants/colors';
@@ -46,7 +46,7 @@ function ToolRow({
       <View style={[styles.toolAccent, { backgroundColor: accent }]} />
       <Pressable
         style={styles.toolContent}
-        onPress={() => Linking.openURL(tool.url)}
+        onPress={() => WebBrowser.openBrowserAsync(tool.url)}
       >
         <Text style={[styles.toolName, { color: colors.foreground }]} numberOfLines={1}>
           {tool.name}
