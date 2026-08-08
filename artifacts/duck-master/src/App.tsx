@@ -386,7 +386,9 @@ function Home() {
           <button
             onClick={e => { e.stopPropagation(); e.preventDefault(); handleSave(tool, { id: catId, label: catLabel }); }}
             className={cn(
-              "shrink-0 w-7 h-7 flex items-center justify-center rounded-full transition-all",
+              // save-btn is targeted by the @media (hover: none) rule in index.css
+              // to keep the button always visible on touch devices.
+              "save-btn shrink-0 w-7 h-7 flex items-center justify-center rounded-full transition-all",
               isSaved
                 ? "text-indigo-600 bg-indigo-50 opacity-100"
                 : "text-slate-300 opacity-0 group-hover:opacity-100 hover:text-indigo-600 hover:bg-indigo-50",
