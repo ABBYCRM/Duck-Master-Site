@@ -32,7 +32,7 @@ router.get("/workspace/saved", async (req: Request, res: Response) => {
       })),
     });
   } catch (err) {
-    console.error("[workspace] GET /saved error:", err);
+    req.log.error({ err }, "[workspace] GET /saved error");
     res.status(500).json({ error: "Failed to load saved tools" });
   }
 });
@@ -88,7 +88,7 @@ router.post("/workspace/saved", workspaceMutationLimiter, async (req: Request, r
       savedAt: row.savedAt.toISOString(),
     });
   } catch (err) {
-    console.error("[workspace] POST /saved error:", err);
+    req.log.error({ err }, "[workspace] POST /saved error");
     res.status(500).json({ error: "Failed to save tool" });
   }
 });
@@ -120,7 +120,7 @@ router.delete("/workspace/saved/:toolId", workspaceMutationLimiter, async (req: 
 
     res.json({ success: true });
   } catch (err) {
-    console.error("[workspace] DELETE /saved error:", err);
+    req.log.error({ err }, "[workspace] DELETE /saved error");
     res.status(500).json({ error: "Failed to delete saved tool" });
   }
 });
@@ -151,7 +151,7 @@ router.get("/workspace/history", async (req: Request, res: Response) => {
       })),
     });
   } catch (err) {
-    console.error("[workspace] GET /history error:", err);
+    req.log.error({ err }, "[workspace] GET /history error");
     res.status(500).json({ error: "Failed to load history" });
   }
 });

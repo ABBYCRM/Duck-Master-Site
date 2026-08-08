@@ -36,7 +36,9 @@ app.use(
 // so most requests are same-origin. The origin check catches direct API
 // calls from other origins and development workflows.
 const ALLOWED_ORIGIN_PATTERNS = [
-  /^https:\/\/[^.]+\.replit\.dev$/,
+  // Allow any subdomain depth under replit.dev (covers *.replit.dev and
+  // multi-level Replit preview domains like *.kirk.replit.dev)
+  /^https:\/\/.+\.replit\.dev$/,
   /^https:\/\/[^.]+\.repl\.co$/,
   /^https:\/\/[^.]+\.replit\.app$/,
   /^http:\/\/localhost(:\d+)?$/,
@@ -52,7 +54,10 @@ app.use(
       const allowed = ALLOWED_ORIGIN_PATTERNS.some((re) => re.test(origin));
       if (allowed) return callback(null, true);
       logger.warn({ origin }, "CORS: blocked request from disallowed origin");
-      callback(new Error("CORS: origin not allowed"));
+      // Attach status 403 so the global error handler returns 403 (not 500)
+      // and does NOT log it as an ERROR-level event.
+      const err = Object.assign(new Error("CORS: origin not allowed"), { status: 403 });
+      callback(err);
     },
   }),
 );

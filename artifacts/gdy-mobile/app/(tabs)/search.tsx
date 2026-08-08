@@ -71,7 +71,7 @@ function ToolItem({
           hitSlop={8}
         >
           <Feather
-            name={isSaved ? 'bookmark' : 'bookmark'}
+            name="bookmark"
             size={18}
             color={isSaved ? colors.primary : colors.mutedForeground}
           />

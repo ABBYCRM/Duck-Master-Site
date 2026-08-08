@@ -1,6 +1,7 @@
 import type { AuthUser } from '@workspace/api-zod';
 import { type NextFunction, type Request, type Response } from 'express';
 import * as oidc from 'openid-client';
+import { logger } from '../lib/logger';
 
 import {
   clearSession,
@@ -49,7 +50,10 @@ async function refreshIfExpired(
   } catch (err) {
     // Refresh failed (expired, revoked, or provider unreachable) — treat as
     // unauthenticated so the user is prompted to sign in again.
-    console.warn('[auth] token refresh failed, clearing session:', err instanceof Error ? err.message : String(err));
+    logger.warn(
+      { errMsg: err instanceof Error ? err.message : String(err) },
+      '[auth] token refresh failed — treating as unauthenticated',
+    );
     return null;
   }
 }
@@ -89,7 +93,9 @@ export async function authMiddleware(
     req.user = refreshed.user;
     next();
   } catch (err) {
-    console.error('[auth] authMiddleware unexpected error:', err);
+    // Do NOT log here — the global error handler in app.ts already logs at
+    // ERROR level with the full err object. A second console.error would
+    // double-log every middleware failure.
     next(err);
   }
 }
