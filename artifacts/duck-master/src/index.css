@@ -779,3 +779,57 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 body:has(.mobile-nav-outer[data-open="true"]) {
   overflow: hidden;
 }
+
+/* ============================================================
+   MOBILE TOOL BROWSER — Phone fixes (≤ 430px)
+   ============================================================ */
+
+/* Fix 1 — Tool card grid: single readable column on phones
+   The @container rule above (width < 28rem) forces 2 tight columns
+   on containers ≈ 22rem wide (a 390px phone with fluid-gutter).
+   This later rule wins for containers below 26rem → 1 column.      */
+@container tool-grid (width < 26rem) {
+  .auto-fit-grid {
+    grid-template-columns: 1fr;
+    gap: .75rem;
+  }
+}
+
+@media (max-width: 430px) {
+  /* Fix 2 — Prevent iOS auto-zoom on search input.
+     iOS zooms the viewport when a focused input has font-size < 16px.
+     Override Tailwind's text-sm (14px) back to 16px on phones only.  */
+  input[type="search"] {
+    font-size: 1rem; /* 16px — stops iOS from zooming on tap */
+  }
+
+  /* Fix 3 — Chip strip: full-bleed horizontal scroll with proper
+     start indent. Negative margin pulls the strip past the hero's
+     fluid-gutter edge so chips reach the screen edge; padding-start
+     on the inner scroll row restores the visual breathing room.
+     The right-edge fade (::after) already hints more content exists. */
+  .chip-strip-wrap {
+    /* Bleed past the hero's fluid-gutter on both sides */
+    margin-inline: calc(-1 * clamp(1rem, 4vw, 4rem));
+  }
+
+  /* Give the inner scroll row the matching indent at start/end
+     so the first chip isn't flush against the screen edge.
+     padding-inline-end gives room before the fade gradient.         */
+  .chip-strip-wrap .scroll-snap-x {
+    padding-inline-start: clamp(1rem, 4vw, 4rem);
+    padding-inline-end: 3.5rem; /* breathing room before right fade */
+  }
+
+  /* Fix 4 — Sticky search bar: ensure the search wrapper spans
+     the full available width (no unintentional max-width shrink)    */
+  .search-wrapper {
+    max-width: 100%;
+  }
+
+  /* Fix 5 — Tool section headers: allow module name to wrap cleanly
+     on narrow screens instead of overflowing or truncating           */
+  .fluid-section-heading {
+    word-break: break-word;
+  }
+}
