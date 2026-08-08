@@ -506,22 +506,40 @@ function Home() {
 
       {/* Stats */}
       <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100 shrink-0 flex gap-4">
-        <div>
+        <button
+          onClick={() => setSidebarTab('modules')}
+          className="text-left cursor-pointer hover:opacity-70 transition-opacity"
+          aria-label="Show all tools"
+        >
           <div className="metric text-base font-extrabold text-slate-800">{totalTools}</div>
           <div className="uppercase-tracking text-slate-400">Tools</div>
-        </div>
+        </button>
         <div className="w-px bg-slate-200" />
-        <div>
+        <button
+          onClick={() => setSidebarTab('modules')}
+          className="text-left cursor-pointer hover:opacity-70 transition-opacity"
+          aria-label="Show modules"
+        >
           <div className="metric text-base font-extrabold text-slate-800">{CATEGORIES.length}</div>
           <div className="uppercase-tracking text-slate-400">Modules</div>
-        </div>
+        </button>
         <div className="w-px bg-slate-200" />
-        <div>
+        <button
+          onClick={() => {
+            if (!isAuthenticated) {
+              openLogin('save');
+              return;
+            }
+            setSidebarTab('saved');
+          }}
+          className="text-left cursor-pointer hover:opacity-70 transition-opacity"
+          aria-label="Show saved tools"
+        >
           <div className="metric text-base font-extrabold text-indigo-600">
             {isAuthenticated ? savedTools.length : '—'}
           </div>
           <div className="uppercase-tracking text-slate-400">Saved</div>
-        </div>
+        </button>
       </div>
 
       {/* Tab switcher */}

@@ -16,7 +16,5 @@
     "prettier": "^3.9.6",
     "typescript": "~5.9.3"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
-  }
+  "packageManager": "pnpm@10.26.1"
 }
