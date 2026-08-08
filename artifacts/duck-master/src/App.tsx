@@ -721,31 +721,52 @@ function Home() {
           className="hero-gradient flex flex-col shrink-0 fluid-gutter pt-8 lg:pt-12 pb-5 sm:pb-8 relative shadow-lg z-10 overflow-hidden"
           style={{ minHeight: 'clamp(230px, 34vw, 420px)' }}
         >
-          {/* Duck mascot — absolutely positioned, fills right side horizontally */}
-          <button
-            onClick={() => setView('topics')}
-            aria-label="Back to module picker"
-            className="absolute inset-y-0 right-0 hover:brightness-110 transition-all duration-300 cursor-pointer"
-            style={{
-              background: 'none', border: 'none', padding: 0,
-              width: 'clamp(200px, 56%, 720px)',
-              zIndex: 0,
-            }}
+          {/* Layer 0 — blurred duck: fills entire hero as background continuation */}
+          <div className="absolute inset-0 pointer-events-none" aria-hidden>
+            <img
+              src="/gdy-hero.png"
+              alt=""
+              className="w-full h-full object-cover object-center"
+              style={{
+                filter: 'blur(32px) brightness(0.28) saturate(0.65)',
+                transform: 'scale(1.18)',
+              }}
+            />
+            {/* Gradient vignette over the blur so hero gradient still reads */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  'radial-gradient(ellipse at 20% 60%, rgb(99 102 241 / .30), transparent 55%),' +
+                  'radial-gradient(ellipse at 80% 20%, rgb(139 92 246 / .20), transparent 50%),' +
+                  'linear-gradient(to bottom, rgba(10,18,60,0.45) 0%, rgba(20,8,50,0.20) 50%, rgba(10,18,60,0.55) 100%)',
+              }}
+            />
+          </div>
+
+          {/* Layer 1 — centered crisp duck */}
+          <div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            aria-hidden
+            style={{ zIndex: 0 }}
           >
             <img
               src="/gdy-hero.png"
               alt=""
               draggable={false}
-              className="w-full h-full object-contain object-right-bottom select-none"
+              className="select-none object-contain"
               style={{
-                maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.45) 22%, black 48%)',
-                WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.45) 22%, black 48%)',
-                filter: 'drop-shadow(0 0 48px rgba(139,92,246,0.85)) drop-shadow(0 0 16px rgba(99,102,241,0.5))',
+                height: 'clamp(160px, 42vw, 360px)',
+                width: 'auto',
+                filter:
+                  'drop-shadow(0 0 70px rgba(139,92,246,0.95))' +
+                  ' drop-shadow(0 0 28px rgba(99,102,241,0.65))',
+                opacity: 0.93,
               }}
             />
-          </button>
+          </div>
 
-          {/* Top controls row */}
+          {/* Top controls — hamburger (mobile) + user pill only */}
           <div className="flex items-center justify-between mb-5 relative" style={{ zIndex: 1 }}>
             <button
               onClick={() => setIsMobileMenuOpen(true)}
@@ -755,26 +776,12 @@ function Home() {
               <Menu className="w-6 h-6" />
             </button>
 
-            <div className="flex items-center gap-2 ml-auto flex-wrap justify-end">
-              {/* Topic picker pill */}
-              <button
-                onClick={() => setView('topics')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
-                style={{
-                  background: 'rgba(255,255,255,0.10)',
-                  border: '1px solid rgba(255,255,255,0.18)',
-                  color: 'rgba(255,255,255,0.80)',
-                  backdropFilter: 'blur(8px)',
-                }}
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                Choose topic
-              </button>
-
-              {/* Sign in / user pill */}
+            <div className="flex items-center gap-2 ml-auto">
               {isAuthenticated ? (
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full"
-                  style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)' }}>
+                <div
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full"
+                  style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)' }}
+                >
                   {user?.profileImageUrl
                     ? <img src={user.profileImageUrl} alt="" className="w-5 h-5 rounded-full object-cover" />
                     : <User className="w-3.5 h-3.5 text-white/80" />}
@@ -786,10 +793,7 @@ function Home() {
                 <button
                   onClick={() => openLogin('generic')}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all"
-                  style={{
-                    background: 'rgba(255,255,255,0.95)',
-                    color: '#4f46e5',
-                  }}
+                  style={{ background: 'rgba(255,255,255,0.95)', color: '#4f46e5' }}
                 >
                   Sign in
                 </button>
@@ -797,8 +801,8 @@ function Home() {
             </div>
           </div>
 
-          {/* Hero text — left side, rendered above the duck */}
-          <div className="relative min-w-0" style={{ zIndex: 1, maxWidth: 'min(58%, 460px)' }}>
+          {/* Hero text */}
+          <div className="relative min-w-0" style={{ zIndex: 1 }}>
             <button
               onClick={() => setView('topics')}
               className="fluid-heading font-extrabold tracking-tight mb-2 block text-left hover:opacity-80 transition-opacity cursor-pointer group"
@@ -810,7 +814,8 @@ function Home() {
               <span className="ml-2 text-white/30 text-base align-middle opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden>↩</span>
             </button>
 
-            <p className="text-white/70 text-sm sm:text-base mb-4 sm:mb-5 font-medium">
+            <p className="text-white/70 text-sm sm:text-base mb-4 sm:mb-5 font-medium"
+               style={{ textShadow: '0 1px 8px rgba(0,0,0,0.7)' }}>
               <span className="metric font-bold text-white">{totalTools}</span>
               {' tools · '}
               <span className="metric font-bold text-white">{CATEGORIES.length}</span>
@@ -821,38 +826,22 @@ function Home() {
             </p>
           </div>
 
-          {/* Category chip strip — wrapped for right-edge fade hint */}
+          {/* Category chip strip */}
           <div className="chip-strip-wrap relative" style={{ zIndex: 1 }}>
-          <div className="scroll-snap-x gap-2 pb-2" role="list" aria-label="Jump to module">
-            {categoriesWithTools.map(cat => (
-              <button
-                key={`chip-${cat.id}`}
-                role="listitem"
-                onClick={() => scrollTo(cat.id)}
-                className="chip shrink-0 py-1 px-3 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5"
-              >
-                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cat.colorVar }} />
-                {cat.label}
-              </button>
-            ))}
+            <div className="scroll-snap-x gap-2 pb-2" role="list" aria-label="Jump to module">
+              {categoriesWithTools.map(cat => (
+                <button
+                  key={`chip-${cat.id}`}
+                  role="listitem"
+                  onClick={() => scrollTo(cat.id)}
+                  className="chip shrink-0 py-1 px-3 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cat.colorVar }} />
+                  {cat.label}
+                </button>
+              ))}
+            </div>
           </div>
-          </div>{/* end chip-strip-wrap */}
-
-          {/* Back to carousel CTA */}
-          <button
-            onClick={() => setView('topics')}
-            className="mt-4 sm:mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95 relative"
-            style={{
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.25)',
-              color: 'rgba(255,255,255,0.85)',
-              backdropFilter: 'blur(8px)',
-              zIndex: 1,
-            }}
-          >
-            <LayoutGrid className="w-3.5 h-3.5" />
-            ← Back to module picker
-          </button>
         </div>
 
         {/* Sticky search bar */}
